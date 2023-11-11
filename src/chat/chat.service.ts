@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { channel } from 'diagnostics_channel';
 import { UserDto } from 'src/DTOs/User/user.dto';
 import { channelDto } from 'src/DTOs/channel/channel.dto';
 import { PrismaService } from 'src/modules/database/prisma.service';
@@ -190,13 +189,14 @@ export class ChannelsService {
  async deleteChannel(channelId : string) {
     await this.prisma.channel.delete({where : {id : channelId}})
  }
-//  async setPasswordToChannel(password: string, channelName : string) {
-//     let channel : channelDto = await this.getChannelByName(channelName)
-//     if (channel) {
-//       await this.prisma.channel.update({where : {id: channel.id},
-//       data : { 
-
-//       }})
-//     }
-//  }
+ async setPasswordToChannel(password: string, channelName : string) {
+    let channel : channelDto = await this.getChannelByName(channelName)
+    if (channel) {
+      await this.prisma.channel.update({where : {id: channel.id},
+      data : {
+        IsProtected : true,
+        password : password,
+      }})
+    }
+ }
  }

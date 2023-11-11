@@ -7,6 +7,7 @@ import { InvitesRepository } from "src/modules/invites/invites.repository";
 import { UsersRepository } from "src/modules/users/users.repository";
 import { ChannelsService } from "./chat.service";
 import { channelDto } from "src/DTOs/channel/channel.dto";
+import { Response } from "express";
 export declare class ChatController {
     private conversation;
     private user;
@@ -20,26 +21,29 @@ export declare class ChatController {
     }): Promise<InviteDto | string>;
     createChannel(channelData: channelDto, req: Request & {
         user: UserDto;
-    }): Promise<any>;
+    }, res: Response): Promise<any>;
     addUserToChannel(channelName: channelDto, username: string, req: Request & {
         user: UserDto;
-    }): Promise<void>;
+    }, res: Response): Promise<void>;
     removeUserFromChannel(req: Request & {
         user: UserDto;
-    }, username: string, channelName: string): Promise<void>;
+    }, username: string, channelName: string, res: Response): Promise<void>;
     banUserFromChannel(req: Request & {
         user: UserDto;
-    }, username: string, channelName: string): Promise<void>;
+    }, username: string, channelName: string, res: Response): Promise<void>;
     unBanUserFromChannel(req: Request & {
         user: UserDto;
-    }, username: string, channelName: string): Promise<void>;
+    }, username: string, channelName: string, res: Response): Promise<void>;
     accepteInvite(req: Request & {
         user: UserDto;
     }, invite: InviteDto): Promise<FriendDto | string>;
     addAdminToChannel(req: Request & {
         user: UserDto;
-    }, username: string, channelName: string): Promise<void>;
+    }, username: string, channelName: string, res: Response): Promise<void>;
     removeAdminFromChannel(req: Request & {
         user: UserDto;
-    }, username: string, channelName: string): Promise<void>;
+    }, username: string, channelName: string, res: Response): Promise<void>;
+    addPasswordToChannel(channleData: channelDto, req: Request & {
+        user: UserDto;
+    }, res: Response): Promise<void>;
 }

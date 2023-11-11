@@ -178,6 +178,16 @@ let ChannelsService = class ChannelsService {
     async deleteChannel(channelId) {
         await this.prisma.channel.delete({ where: { id: channelId } });
     }
+    async setPasswordToChannel(password, channelName) {
+        let channel = await this.getChannelByName(channelName);
+        if (channel) {
+            await this.prisma.channel.update({ where: { id: channel.id },
+                data: {
+                    IsProtected: true,
+                    password: password,
+                } });
+        }
+    }
 };
 exports.ChannelsService = ChannelsService;
 exports.ChannelsService = ChannelsService = __decorate([

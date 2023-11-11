@@ -12,4 +12,5 @@ export declare class ChannelsService {
     assignAdminToChannel(userName: string, channelName: string): Promise<void>;
     removeAdminPrivilageToUser(username: string, channelName: string): Promise<void>;
     deleteChannel(channelId: string): Promise<void>;
+    setPasswordToChannel(password: string, channelName: string): Promise<void>;
 }

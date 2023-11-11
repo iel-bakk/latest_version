@@ -43,23 +43,34 @@ let ChatController = class ChatController {
             return `Already Friends`;
         return tmp;
     }
-    async createChannel(channelData, req) {
-        return await this.channel.createChannel(channelData, req.user.id);
-    }
-    async addUserToChannel(channelName, username, req) {
-        let channel = await this.channel.getChannelByName(channelName.name);
-        let tmpUser = await this.user.getUserByUsername(username);
-        if (tmpUser && channel) {
-            channel.password = channelName.password;
-            if (channel.IsPrivate && req.user.id == channel.owner) {
-                await this.channel.addUserToChannel(tmpUser.id, channel);
-            }
-            else if (!channel.IsPrivate) {
-                await this.channel.addUserToChannel(tmpUser.id, channel);
-            }
+    async createChannel(channelData, req, res) {
+        try {
+            return await this.channel.createChannel(channelData, req.user.id);
+        }
+        catch (error) {
+            res.status(400).json({ message: 'invalid request .' });
+            console.log('invalid data in request');
         }
     }
-    async removeUserFromChannel(req, username, channelName) {
+    async addUserToChannel(channelName, username, req, res) {
+        try {
+            let channel = await this.channel.getChannelByName(channelName.name);
+            let tmpUser = await this.user.getUserByUsername(username);
+            if (tmpUser && channel) {
+                channel.password = channelName.password;
+                if (channel.IsPrivate && req.user.id == channel.owner) {
+                    await this.channel.addUserToChannel(tmpUser.id, channel);
+                }
+                else if (!channel.IsPrivate) {
+                    await this.channel.addUserToChannel(tmpUser.id, channel);
+                }
+            }
+        }
+        catch (error) {
+            res.status(400).json({ message: 'invalid request .' });
+        }
+    }
+    async removeUserFromChannel(req, username, channelName, res) {
         console.log(`username recieved from body : ${username}`);
         let tmpUser = await this.user.getUserByUsername(username);
         let tmpchannel = await this.channel.getChannelByName(channelName);
@@ -78,24 +89,35 @@ let ChatController = class ChatController {
             }
         }
         catch (error) {
+            res.status(400).json({ message: 'invalid request .' });
             console.log(`could not delete the user`);
         }
     }
-    async banUserFromChannel(req, username, channelName) {
-        let channelTmp = await this.channel.getChannelByName(channelName);
-        let userTmp = await this.user.getUserByUsername(username);
-        if (channelTmp && userTmp && channelTmp.admins.includes(req.user.id)) {
-            if (userTmp.id == channelTmp.owner && userTmp.id == req.user.id)
-                await this.channel.banUserFromChannel(username, channelName);
-            else if (userTmp.id != channelTmp.owner)
-                await this.channel.banUserFromChannel(username, channelName);
+    async banUserFromChannel(req, username, channelName, res) {
+        try {
+            let channelTmp = await this.channel.getChannelByName(channelName);
+            let userTmp = await this.user.getUserByUsername(username);
+            if (channelTmp && userTmp && channelTmp.admins.includes(req.user.id)) {
+                if (userTmp.id == channelTmp.owner && userTmp.id == req.user.id)
+                    await this.channel.banUserFromChannel(username, channelName);
+                else if (userTmp.id != channelTmp.owner)
+                    await this.channel.banUserFromChannel(username, channelName);
+            }
+        }
+        catch (error) {
+            res.status(400).json({ message: 'invalid request .' });
         }
     }
-    async unBanUserFromChannel(req, username, channelName) {
-        let channelTmp = await this.channel.getChannelByName(channelName);
-        let userTmp = await this.user.getUserByUsername(username);
-        if (channelTmp && userTmp && channelTmp.admins.includes(req.user.id) && channelTmp.bannedUsers.includes(userTmp.id)) {
-            await this.channel.unBanUserFromChannel(username, channelName);
+    async unBanUserFromChannel(req, username, channelName, res) {
+        try {
+            let channelTmp = await this.channel.getChannelByName(channelName);
+            let userTmp = await this.user.getUserByUsername(username);
+            if (channelTmp && userTmp && channelTmp.admins.includes(req.user.id) && channelTmp.bannedUsers.includes(userTmp.id)) {
+                await this.channel.unBanUserFromChannel(username, channelName);
+            }
+        }
+        catch (error) {
+            res.status(400).json({ message: 'invalid request .' });
         }
     }
     async accepteInvite(req, invite) {
@@ -107,18 +129,38 @@ let ChatController = class ChatController {
         await this.invite.deleteInvite(invite.id);
         return this.friend.createFriend(new friend_dto_1.FriendDto(invite.invitationRecieverId, invite.invitationSenderId, ''), req.user.id);
     }
-    async addAdminToChannel(req, username, channelName) {
-        await this.channel.assignAdminToChannel(username, channelName);
-        console.log('testing');
+    async addAdminToChannel(req, username, channelName, res) {
+        try {
+            await this.channel.assignAdminToChannel(username, channelName);
+        }
+        catch (error) {
+            res.status(400).json({ message: 'invalid request .' });
+        }
     }
-    async removeAdminFromChannel(req, username, channelName) {
-        let channel = await this.channel.getChannelByName(channelName);
-        let userTmp = await this.user.getUserByUsername(username);
-        if (userTmp && channel && channel.admins.includes(req.user.id)) {
-            if (channel.owner == userTmp.id && req.user.id == channel.owner)
-                await this.channel.removeAdminPrivilageToUser(username, channelName);
-            else if (channel.owner != userTmp.id)
-                await this.channel.removeAdminPrivilageToUser(username, channelName);
+    async removeAdminFromChannel(req, username, channelName, res) {
+        try {
+            let channel = await this.channel.getChannelByName(channelName);
+            let userTmp = await this.user.getUserByUsername(username);
+            if (userTmp && channel && channel.admins.includes(req.user.id)) {
+                if (channel.owner == userTmp.id && req.user.id == channel.owner)
+                    await this.channel.removeAdminPrivilageToUser(username, channelName);
+                else if (channel.owner != userTmp.id)
+                    await this.channel.removeAdminPrivilageToUser(username, channelName);
+            }
+        }
+        catch (error) {
+            res.status(400).json({ message: 'invalid request .' });
+        }
+    }
+    async addPasswordToChannel(channleData, req, res) {
+        try {
+            let channel = await this.channel.getChannelByName(channleData.name);
+            if (channel && channel.owner == req.user.id) {
+                await this.channel.setPasswordToChannel(channel.password, channleData.name);
+            }
+        }
+        catch (error) {
+            res.status(400).json({ message: 'invalid request .' });
         }
     }
 };
@@ -143,8 +185,9 @@ __decorate([
     (0, common_1.UseGuards)(jwt_guard_1.JwtAuth),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Req)()),
+    __param(2, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [channel_dto_1.channelDto, Object]),
+    __metadata("design:paramtypes", [channel_dto_1.channelDto, Object, Object]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "createChannel", null);
 __decorate([
@@ -153,8 +196,9 @@ __decorate([
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Body)('username')),
     __param(2, (0, common_1.Req)()),
+    __param(3, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [channel_dto_1.channelDto, String, Object]),
+    __metadata("design:paramtypes", [channel_dto_1.channelDto, String, Object, Object]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "addUserToChannel", null);
 __decorate([
@@ -163,8 +207,9 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)('username')),
     __param(2, (0, common_1.Body)('channelName')),
+    __param(3, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:paramtypes", [Object, String, String, Object]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "removeUserFromChannel", null);
 __decorate([
@@ -173,8 +218,9 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)('username')),
     __param(2, (0, common_1.Body)('channelName')),
+    __param(3, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:paramtypes", [Object, String, String, Object]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "banUserFromChannel", null);
 __decorate([
@@ -183,8 +229,9 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)('username')),
     __param(2, (0, common_1.Body)('channelName')),
+    __param(3, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:paramtypes", [Object, String, String, Object]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "unBanUserFromChannel", null);
 __decorate([
@@ -202,8 +249,9 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)('username')),
     __param(2, (0, common_1.Body)('channelName')),
+    __param(3, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:paramtypes", [Object, String, String, Object]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "addAdminToChannel", null);
 __decorate([
@@ -212,10 +260,21 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)('username')),
     __param(2, (0, common_1.Body)('channelName')),
+    __param(3, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:paramtypes", [Object, String, String, Object]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "removeAdminFromChannel", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_guard_1.JwtAuth),
+    (0, common_1.Post)('addPasswordToChannel'),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __param(2, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [channel_dto_1.channelDto, Object, Object]),
+    __metadata("design:returntype", Promise)
+], ChatController.prototype, "addPasswordToChannel", null);
 exports.ChatController = ChatController = __decorate([
     (0, common_1.Controller)('Chat'),
     __metadata("design:paramtypes", [conversation_repository_1.converationRepositroy, users_repository_1.UsersRepository, invites_repository_1.InvitesRepository, friends_repository_1.FriendsRepository, chat_service_1.ChannelsService])
