@@ -17,14 +17,14 @@ let ChannelsService = class ChannelsService {
         this.prisma = prisma;
     }
     async createChannel(channelData, id) {
-        console.log(`channel name : ${name} userId : ${id}`);
-        channelData.users.push(id);
-        channelData.adminUsers.push(id);
+        console.log(`the users id ${id}`);
+        let tmp = [id];
         try {
-            await this.prisma.channel.create({ data: {
-                    name: "area 420",
-                    admins: channelData.adminUsers,
-                    users: channelData.users,
+            console.log(channelData);
+            return await this.prisma.channel.create({ data: {
+                    name: channelData.name,
+                    admins: tmp,
+                    users: tmp,
                 } });
         }
         catch (error) {

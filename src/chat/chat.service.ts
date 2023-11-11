@@ -6,15 +6,16 @@ import { PrismaService } from 'src/modules/database/prisma.service';
 export class ChannelsService {
  constructor(private prisma: PrismaService) {}
 
- async createChannel(channelData: channelDto , id : string) {
-    console.log(`channel name : ${name} userId : ${id}`)
-    channelData.users.push(id);
-    channelData.adminUsers.push(id);
+ async createChannel(channelData: channelDto , id : string) : Promise<any> {
+    console.log(`the users id ${id}`);
+    let tmp : string[] = [id];
     try {
-        await this.prisma.channel.create({data : {
-            name : "area 420",
-            admins : channelData.adminUsers,
-            users : channelData.users,
+        console.log(channelData);
+        
+        return await this.prisma.channel.create({data : {
+            name : channelData.name,
+            admins : tmp,
+            users : tmp,
         }})
     }
     catch (error) {
