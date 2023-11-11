@@ -38,13 +38,17 @@ export class ChatController {
 
     @Post('ChannelAddUser')
     @UseGuards(JwtAuth)
-    async addUserToChannel(@Body('channelName') channelName : string, @Body('username') username : string, @Req() req : Request & {user : UserDto}) {
-        let channel : channelDto = await this.channel.getChannelByName(channelName);
+    async addUserToChannel(@Body() channelName: channelDto, @Body('username') username : string, @Req() req : Request & {user : UserDto}) {
+        let channel : channelDto = await this.channel.getChannelByName(channelName.name);
         let tmpUser : UserDto = await this.user.getUserByUsername(username);
         if (tmpUser && channel) {
-            console.log(channel);
-            console.log(tmpUser);
-            await this.channel.addUserToChannel(tmpUser.id, channel.id);
+            channel.password = channelName.password;
+            if (channel.IsPrivate && req.user.id == channel.owner) {
+                await this.channel.addUserToChannel(tmpUser.id, channel);
+            }
+            else if (!channel.IsPrivate) {
+                await this.channel.addUserToChannel(tmpUser.id, channel);
+            }
         }
     }
     
@@ -61,7 +65,14 @@ export class ChatController {
 
             if ( tmpUser && tmpchannel && tmpchannel.admins.includes(req.user.id) && tmpchannel.users.includes(tmpUser.id))
             {
-                await this.channel.removeUserFromChannel(tmpUser.id, tmpchannel.id);
+                if (tmpUser.id == tmpchannel.owner && req.user.id == tmpchannel.owner)
+                    await this.channel.removeUserFromChannel(tmpUser.id, tmpchannel.id);
+                else if (tmpUser.id != tmpchannel.owner)
+                    await this.channel.removeUserFromChannel(tmpUser.id, tmpchannel.id);
+                let check : channelDto = await this.channel.getChannelByName(channelName)
+                if (check && !check.users.length)
+                    await this.channel.deleteChannel(check.id);
+                console.log(check.users)
             }
         }
         catch (error) {
@@ -73,8 +84,12 @@ export class ChatController {
     @UseGuards(JwtAuth)
     async   banUserFromChannel(@Req() req: Request & {user : UserDto}, @Body('username') username: string, @Body('channelName') channelName: string) {
         let channelTmp : channelDto = await this.channel.getChannelByName(channelName)
-        if (channelTmp && channelTmp.admins.includes(req.user.id)) {
-            await this.channel.banUserFromChannel(username, channelName);
+        let userTmp : UserDto = await this.user.getUserByUsername(username)
+        if (channelTmp && userTmp && channelTmp.admins.includes(req.user.id)) {
+            if (userTmp.id == channelTmp.owner && userTmp.id == req.user.id)
+                await this.channel.banUserFromChannel(username, channelName);
+            else if (userTmp.id != channelTmp.owner)
+                await this.channel.banUserFromChannel(username, channelName);
         }
     }
     
@@ -113,8 +128,13 @@ export class ChatController {
     @UseGuards(JwtAuth)
     async   removeAdminFromChannel(@Req() req : Request & {user : UserDto}, @Body('username') username : string, @Body('channelName') channelName: string) {
         let channel : channelDto = await this.channel.getChannelByName(channelName)
-        if (channel && channel.admins.includes(req.user.id))
-            await this.channel.removeAdminPrivilageToUser(username, channelName);
+        let userTmp : UserDto = await this.user.getUserByUsername(username)
+        if (userTmp && channel && channel.admins.includes(req.user.id)) {
+            if (channel.owner == userTmp.id && req.user.id == channel.owner)
+                await this.channel.removeAdminPrivilageToUser(username, channelName);
+            else if (channel.owner != userTmp.id)
+                await this.channel.removeAdminPrivilageToUser(username, channelName);
+        }
     }
 
 

@@ -30,11 +30,15 @@ model User {
 }
 
 model Channel {
-      id          String   @id @default(uuid())
-      name        String   @unique
-      users       String[] 
-      admins      String[] 
-      bannedUsers String[] 
+  id                    String   @id @default(uuid())
+  name                  String   @unique
+  users                 String[]
+  admins                String[]
+  bannedUsers           String[]
+  owner                 String
+  IsPrivate             Boolean @default(false)
+  IsProtected           Boolean @default(false)
+  password              String
 }
 
 model Friend {
@@ -43,7 +47,7 @@ model Friend {
   inviteSenderId        String
   inviteReciever        User @relation("inviteReciever", fields: [inviteRecieverId], references: [id], onDelete: Cascade)
   inviteSender          User @relation("inviteSender", fields: [inviteSenderId], references: [id], onDelete: Cascade)
-  latestMessage         String ? @default("merwan")
+  latestMessage         String ? @default("")
   latestMessageDate     DateTime @default(now())
 }
 

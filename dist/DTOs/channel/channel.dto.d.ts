@@ -4,4 +4,8 @@ export declare class channelDto {
     users: string[];
     admins: string[];
     bannedUsers: string[];
+    owner: string;
+    IsPrivate: boolean;
+    IsProtected: boolean;
+    password: string;
 }

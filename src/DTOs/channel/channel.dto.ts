@@ -14,5 +14,12 @@ export class channelDto {
     admins : string[]; 
     
     bannedUsers : string[];
+    @IsString()
+    owner       : string;
 
+    IsPrivate   : boolean;
+
+    IsProtected   : boolean;
+    @IsString()
+    password    : string;
 }
