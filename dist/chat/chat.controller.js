@@ -46,6 +46,28 @@ let ChatController = class ChatController {
     async createChannel(channelData, req) {
         return await this.channel.createChannel(channelData, req.user.id);
     }
+    async addUserToChannel(channelName, username, req) {
+        let channel = await this.channel.getChannelByName(channelName);
+        let tmpUser = await this.user.getUserByUsername(username);
+        console.log(channel);
+        console.log(tmpUser);
+        await this.channel.addUserToChannel(tmpUser.id, channel.id);
+    }
+    async removeUserFromChannel(req, username, channelName) {
+        console.log(`username recieved from body : ${username}`);
+        let tmpUser = await this.user.getUserByUsername(username);
+        let tmpchannel = await this.channel.getChannelByName(channelName);
+        console.log(`user to delete : `, tmpUser);
+        console.log(`channel : `, tmpchannel);
+        try {
+            if (tmpUser && tmpchannel && tmpchannel.admins.includes(req.user.id) && tmpchannel.users.includes(tmpUser.id)) {
+                await this.channel.removeUserFromChannel(tmpUser.id, tmpchannel.id);
+            }
+        }
+        catch (error) {
+            console.log(`could not delete the user`);
+        }
+    }
     async accepteInvite(req, invite) {
         if (req.user.id != invite.invitationRecieverId)
             return 'Unauthorized !!';
@@ -81,6 +103,26 @@ __decorate([
     __metadata("design:paramtypes", [channel_dto_1.channelDto, Object]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "createChannel", null);
+__decorate([
+    (0, common_1.Post)('ChannelAddUser'),
+    (0, common_1.UseGuards)(jwt_guard_1.JwtAuth),
+    __param(0, (0, common_1.Body)('channelName')),
+    __param(1, (0, common_1.Body)('username')),
+    __param(2, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", Promise)
+], ChatController.prototype, "addUserToChannel", null);
+__decorate([
+    (0, common_1.Delete)('removeUserFromChannel'),
+    (0, common_1.UseGuards)(jwt_guard_1.JwtAuth),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)('username')),
+    __param(2, (0, common_1.Body)('channelName')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:returntype", Promise)
+], ChatController.prototype, "removeUserFromChannel", null);
 __decorate([
     (0, common_1.Put)('accepteInvite'),
     (0, common_1.UseGuards)(jwt_guard_1.JwtAuth),

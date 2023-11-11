@@ -23,7 +23,6 @@ export class UsersRepository {
     }
     
     async getUserByUsername (username : string) : Promise<UserDto | null> {
-        console.log(`username : ${username}`)
         const data: UserDto = await this.prisma.user.findFirst({where : {
             username : username,
         }});

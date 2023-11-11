@@ -11,7 +11,7 @@ export class channelDto {
 
     users : string[]; 
     
-    adminUsers : string[]; 
+    admins : string[]; 
     
     bannedUsers : string[];
 

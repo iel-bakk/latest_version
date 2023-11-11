@@ -31,7 +31,6 @@ let UsersRepository = class UsersRepository {
         return data;
     }
     async getUserByUsername(username) {
-        console.log(`username : ${username}`);
         const data = await this.prisma.user.findFirst({ where: {
                 username: username,
             } });

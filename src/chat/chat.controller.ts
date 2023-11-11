@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Put, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Post, Put, Req, UseGuards } from "@nestjs/common";
 import { User } from "@prisma/client";
 import { UserDto } from "src/DTOs/User/user.dto";
 import { FriendDto } from "src/DTOs/friends/friend.dto";
@@ -36,7 +36,38 @@ export class ChatController {
     async createChannel(@Body() channelData : channelDto, @Req() req: Request & {user : UserDto} ) : Promise<any> {
         return await this.channel.createChannel(channelData, req.user.id);
     }
+
+    @Post('ChannelAddUser')
+    @UseGuards(JwtAuth)
+    async addUserToChannel(@Body('channelName') channelName : string, @Body('username') username : string, @Req() req : Request & {user : UserDto}) {
+        let channel : channelDto = await this.channel.getChannelByName(channelName);
+        let tmpUser : UserDto = await this.user.getUserByUsername(username);
+        console.log(channel);
+        console.log(tmpUser);
+        await this.channel.addUserToChannel(tmpUser.id, channel.id);
+    }
     
+
+    @Delete('removeUserFromChannel')
+    @UseGuards(JwtAuth)
+    async removeUserFromChannel(@Req() req: Request & {user : UserDto}, @Body('username') username: string, @Body('channelName') channelName: string) {
+        console.log(`username recieved from body : ${username}`);
+        let tmpUser: UserDto = await this.user.getUserByUsername(username)
+        let  tmpchannel : channelDto = await this.channel.getChannelByName(channelName)
+        console.log(`user to delete : `, tmpUser);
+        console.log(`channel : `, tmpchannel);
+        try {
+
+            if ( tmpUser && tmpchannel && tmpchannel.admins.includes(req.user.id) && tmpchannel.users.includes(tmpUser.id))
+            {
+                await this.channel.removeUserFromChannel(tmpUser.id, tmpchannel.id);
+            }
+        }
+        catch (error) {
+            console.log(`could not delete the user`);
+        }
+    }
+
     @Put('accepteInvite')
     @UseGuards(JwtAuth)
     async accepteInvite(@Req() req: Request & {user : UserDto}, @Body() invite : InviteDto) : Promise<FriendDto | string> {
