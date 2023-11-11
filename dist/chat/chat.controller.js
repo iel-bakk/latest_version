@@ -76,6 +76,13 @@ let ChatController = class ChatController {
             await this.channel.banUserFromChannel(username, channelName);
         }
     }
+    async unBanUserFromChannel(req, username, channelName) {
+        let channelTmp = await this.channel.getChannelByName(channelName);
+        let userTmp = await this.user.getUserByUsername(username);
+        if (channelTmp && userTmp && channelTmp.admins.includes(req.user.id) && channelTmp.bannedUsers.includes(userTmp.id)) {
+            await this.channel.unBanUserFromChannel(username, channelName);
+        }
+    }
     async accepteInvite(req, invite) {
         if (req.user.id != invite.invitationRecieverId)
             return 'Unauthorized !!';
@@ -84,6 +91,10 @@ let ChatController = class ChatController {
             return 'no Invite to accepte';
         await this.invite.deleteInvite(invite.id);
         return this.friend.createFriend(new friend_dto_1.FriendDto(invite.invitationRecieverId, invite.invitationSenderId, ''), req.user.id);
+    }
+    async addAdminToChannel(req, username, channelName) {
+        await this.channel.assignAdminToChannel(username, channelName);
+        console.log('testing');
     }
 };
 exports.ChatController = ChatController;
@@ -142,6 +153,16 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "banUserFromChannel", null);
 __decorate([
+    (0, common_1.Post)('unBanUserFromChannel'),
+    (0, common_1.UseGuards)(jwt_guard_1.JwtAuth),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)('username')),
+    __param(2, (0, common_1.Body)('channelName')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:returntype", Promise)
+], ChatController.prototype, "unBanUserFromChannel", null);
+__decorate([
     (0, common_1.Put)('accepteInvite'),
     (0, common_1.UseGuards)(jwt_guard_1.JwtAuth),
     __param(0, (0, common_1.Req)()),
@@ -150,6 +171,16 @@ __decorate([
     __metadata("design:paramtypes", [Object, invite_dto_1.InviteDto]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "accepteInvite", null);
+__decorate([
+    (0, common_1.Post)('addAdminToChannel'),
+    (0, common_1.UseGuards)(jwt_guard_1.JwtAuth),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)('username')),
+    __param(2, (0, common_1.Body)('channelName')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:returntype", Promise)
+], ChatController.prototype, "addAdminToChannel", null);
 exports.ChatController = ChatController = __decorate([
     (0, common_1.Controller)('Chat'),
     __metadata("design:paramtypes", [conversation_repository_1.converationRepositroy, users_repository_1.UsersRepository, invites_repository_1.InvitesRepository, friends_repository_1.FriendsRepository, chat_service_1.ChannelsService])

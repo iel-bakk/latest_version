@@ -116,7 +116,7 @@ let ChannelsService = class ChannelsService {
         const channel = await this.prisma.channel.findUnique({ where: { name: channelName } });
         let Ban;
         console.log(channel);
-        if (user && channel) {
+        if (user && channel && !channel.bannedUsers.includes(user.id)) {
             console.log("testing");
             Ban = channel.bannedUsers;
             await this.removeUserFromChannel(user.id, channel.id);
@@ -128,8 +128,37 @@ let ChannelsService = class ChannelsService {
             });
         }
     }
+    async unBanUserFromChannel(username, channelName) {
+        let user = await this.prisma.user.findFirst({ where: { username: username } });
+        let channel = await this.prisma.channel.findUnique({ where: { name: channelName } });
+        let tmp = [];
+        if (user && channel) {
+            if (channel.bannedUsers.includes(user.id)) {
+                for (let index = 0; index < channel.bannedUsers.length; index++) {
+                    if (user.id != channel.bannedUsers[index])
+                        tmp.push(channel.bannedUsers[index]);
+                }
+                console.log(tmp);
+                await this.prisma.channel.update({ where: { id: channel.id },
+                    data: { bannedUsers: tmp } });
+            }
+            await this.addUserToChannel(user.id, channel.id);
+        }
+    }
     async getChannelByName(channelName) {
         return await this.prisma.channel.findFirst({ where: { name: channelName } });
+    }
+    async assignAdminToChannel(userName, channelName) {
+        const user = await this.prisma.user.findFirst({ where: { username: userName } });
+        const channel = await this.prisma.channel.findUnique({ where: { name: channelName } });
+        if (user && channel && channel.users.includes(user.id) && !channel.admins.includes(user.id)) {
+            console.log('ghehehe');
+            channel.admins.push(user.id);
+            await this.prisma.channel.update({ where: { id: channel.id },
+                data: {
+                    admins: channel.admins,
+                } });
+        }
     }
 };
 exports.ChannelsService = ChannelsService;

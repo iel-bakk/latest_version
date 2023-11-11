@@ -30,7 +30,13 @@ export declare class ChatController {
     banUserFromChannel(req: Request & {
         user: UserDto;
     }, username: string, channelName: string): Promise<void>;
+    unBanUserFromChannel(req: Request & {
+        user: UserDto;
+    }, username: string, channelName: string): Promise<void>;
     accepteInvite(req: Request & {
         user: UserDto;
     }, invite: InviteDto): Promise<FriendDto | string>;
+    addAdminToChannel(req: Request & {
+        user: UserDto;
+    }, username: string, channelName: string): Promise<void>;
 }

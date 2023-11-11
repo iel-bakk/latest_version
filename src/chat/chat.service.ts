@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { log } from 'console';
 import { UserDto } from 'src/DTOs/User/user.dto';
 import { channelDto } from 'src/DTOs/channel/channel.dto';
 import { PrismaService } from 'src/modules/database/prisma.service';
@@ -115,7 +114,7 @@ export class ChannelsService {
     let Ban : string[];
     console.log(channel);
     
-    if (user && channel) {
+    if (user && channel && !channel.bannedUsers.includes(user.id)) {
       console.log("testing");
       Ban = channel.bannedUsers;
       await this.removeUserFromChannel(user.id, channel.id);
@@ -128,18 +127,38 @@ export class ChannelsService {
     }
  }
 
+ async unBanUserFromChannel(username : string, channelName : string) {
+  let user : UserDto = await this.prisma.user.findFirst({where : {username : username}})
+  let channel : channelDto = await this.prisma.channel.findUnique({where : {name : channelName}})
+  let tmp : string[] = [];
+  if (user && channel) {
+    if (channel.bannedUsers.includes(user.id)) {
+        for (let index = 0; index < channel.bannedUsers.length; index++) {
+          if (user.id != channel.bannedUsers[index])
+            tmp.push(channel.bannedUsers[index]);
+        }
+        console.log(tmp);
+        await this.prisma.channel.update({where : {id : channel.id},
+          data : {bannedUsers : tmp}})
+        }
+        await this.addUserToChannel(user.id, channel.id);
+  }
+ }
+
  async getChannelByName(channelName: string) : Promise<channelDto> {
     return await this.prisma.channel.findFirst({where : {name : channelName}});
  }
-//  async assignAdminToChannel(userId: string, channelId: string) {
-//     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-//     const channel = await this.prisma.channel.findUnique({ where: { id: channelId } });
-
-//     if (user && channel) {
-//       await this.prisma.user.update({
-//         where: { id: userId },
-//         data: { adminChannels: { connect: { id: channelId } } },
-//       });
-//     }
-//  }
+ async assignAdminToChannel(userName: string, channelName: string) {
+    const user = await this.prisma.user.findFirst({ where: { username: userName } });
+    const channel = await this.prisma.channel.findUnique({ where: { name: channelName } });
+    if (user && channel && channel.users.includes(user.id) && !channel.admins.includes(user.id)) {
+      console.log('ghehehe');
+      
+      channel.admins.push(user.id)
+        await this.prisma.channel.update({where : {id : channel.id},
+          data : {
+            admins : channel.admins,
+          }})
+    }
+ }
 }

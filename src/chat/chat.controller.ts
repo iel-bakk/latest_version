@@ -78,6 +78,16 @@ export class ChatController {
             await this.channel.banUserFromChannel(username, channelName);
         }
     }
+    
+    @Post('unBanUserFromChannel')
+    @UseGuards(JwtAuth)
+    async   unBanUserFromChannel(@Req() req: Request & {user : UserDto}, @Body('username') username: string, @Body('channelName') channelName: string) {
+        let channelTmp : channelDto = await this.channel.getChannelByName(channelName)
+        let userTmp : UserDto = await this.user.getUserByUsername(username)
+        if (channelTmp && userTmp && channelTmp.admins.includes(req.user.id) && channelTmp.bannedUsers.includes(userTmp.id)) {
+            await this.channel.unBanUserFromChannel(username, channelName);
+        }
+    }
 
     @Put('accepteInvite')
     @UseGuards(JwtAuth)
@@ -89,5 +99,13 @@ export class ChatController {
             return 'no Invite to accepte'
         await this.invite.deleteInvite(invite.id);
         return this.friend.createFriend(new FriendDto(invite.invitationRecieverId, invite.invitationSenderId, ''), req.user.id);
+    }
+    
+
+    @Post('addAdminToChannel')
+    @UseGuards(JwtAuth)
+    async   addAdminToChannel(@Req() req : Request & {user : UserDto}, @Body('username') username : string, @Body('channelName') channelName: string) {
+        await this.channel.assignAdminToChannel(username, channelName);
+        console.log('testing');
     }
 }
