@@ -1,5 +1,4 @@
 import { Body, Controller, Delete, Get, Post, Put, Req, UseGuards } from "@nestjs/common";
-import { User } from "@prisma/client";
 import { UserDto } from "src/DTOs/User/user.dto";
 import { FriendDto } from "src/DTOs/friends/friend.dto";
 import { InviteDto } from "src/DTOs/invitation/invite.dto";
@@ -108,4 +107,16 @@ export class ChatController {
         await this.channel.assignAdminToChannel(username, channelName);
         console.log('testing');
     }
+    
+    
+    @Post('removeAdminToChannel')
+    @UseGuards(JwtAuth)
+    async   removeAdminFromChannel(@Req() req : Request & {user : UserDto}, @Body('username') username : string, @Body('channelName') channelName: string) {
+        let channel : channelDto = await this.channel.getChannelByName(channelName)
+        if (channel && channel.admins.includes(req.user.id))
+            await this.channel.removeAdminPrivilageToUser(username, channelName);
+    }
+
+
+
 }

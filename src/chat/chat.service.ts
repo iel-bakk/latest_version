@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { User } from '@prisma/client';
 import { UserDto } from 'src/DTOs/User/user.dto';
 import { channelDto } from 'src/DTOs/channel/channel.dto';
 import { PrismaService } from 'src/modules/database/prisma.service';
@@ -159,6 +160,24 @@ export class ChannelsService {
           data : {
             admins : channel.admins,
           }})
+    }
+ }
+
+ async removeAdminPrivilageToUser(username : string, channelName : string) {
+    let channel : channelDto = await this.getChannelByName(channelName);
+    let user : UserDto = await this.prisma.user.findFirst({where : {username : username}})
+    let tmp : string[] = []
+
+    if (user && channel) {
+      if (channel.admins.includes(user.id))
+      {
+        for (let index = 0; index < channel.admins.length; index++) {
+          if (user.id != channel.admins[index])
+            tmp.push(channel.admins[index])
+        }
+        await this.prisma.channel.update({where : {id : channel.id} , 
+        data : {admins : tmp}})
+      }
     }
  }
 }

@@ -39,4 +39,7 @@ export declare class ChatController {
     addAdminToChannel(req: Request & {
         user: UserDto;
     }, username: string, channelName: string): Promise<void>;
+    removeAdminFromChannel(req: Request & {
+        user: UserDto;
+    }, username: string, channelName: string): Promise<void>;
 }

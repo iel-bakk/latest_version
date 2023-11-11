@@ -10,4 +10,5 @@ export declare class ChannelsService {
     unBanUserFromChannel(username: string, channelName: string): Promise<void>;
     getChannelByName(channelName: string): Promise<channelDto>;
     assignAdminToChannel(userName: string, channelName: string): Promise<void>;
+    removeAdminPrivilageToUser(username: string, channelName: string): Promise<void>;
 }

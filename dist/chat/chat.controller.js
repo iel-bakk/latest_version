@@ -96,6 +96,11 @@ let ChatController = class ChatController {
         await this.channel.assignAdminToChannel(username, channelName);
         console.log('testing');
     }
+    async removeAdminFromChannel(req, username, channelName) {
+        let channel = await this.channel.getChannelByName(channelName);
+        if (channel && channel.admins.includes(req.user.id))
+            await this.channel.removeAdminPrivilageToUser(username, channelName);
+    }
 };
 exports.ChatController = ChatController;
 __decorate([
@@ -181,6 +186,16 @@ __decorate([
     __metadata("design:paramtypes", [Object, String, String]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "addAdminToChannel", null);
+__decorate([
+    (0, common_1.Post)('removeAdminToChannel'),
+    (0, common_1.UseGuards)(jwt_guard_1.JwtAuth),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)('username')),
+    __param(2, (0, common_1.Body)('channelName')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:returntype", Promise)
+], ChatController.prototype, "removeAdminFromChannel", null);
 exports.ChatController = ChatController = __decorate([
     (0, common_1.Controller)('Chat'),
     __metadata("design:paramtypes", [conversation_repository_1.converationRepositroy, users_repository_1.UsersRepository, invites_repository_1.InvitesRepository, friends_repository_1.FriendsRepository, chat_service_1.ChannelsService])

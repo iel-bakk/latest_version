@@ -160,6 +160,21 @@ let ChannelsService = class ChannelsService {
                 } });
         }
     }
+    async removeAdminPrivilageToUser(username, channelName) {
+        let channel = await this.getChannelByName(channelName);
+        let user = await this.prisma.user.findFirst({ where: { username: username } });
+        let tmp = [];
+        if (user && channel) {
+            if (channel.admins.includes(user.id)) {
+                for (let index = 0; index < channel.admins.length; index++) {
+                    if (user.id != channel.admins[index])
+                        tmp.push(channel.admins[index]);
+                }
+                await this.prisma.channel.update({ where: { id: channel.id },
+                    data: { admins: tmp } });
+            }
+        }
+    }
 };
 exports.ChannelsService = ChannelsService;
 exports.ChannelsService = ChannelsService = __decorate([
