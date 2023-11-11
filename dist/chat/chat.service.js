@@ -22,18 +22,18 @@ let ChannelsService = class ChannelsService {
         try {
             console.log(channelData);
             let check = await this.getChannelByName(channelData.name);
-            if (check)
+            let tmpUser = await this.prisma.user.findUnique({ where: { id: id } });
+            if (check || !tmpUser)
                 return;
             let channel = await this.prisma.channel.create({ data: {
                     name: channelData.name,
                     admins: tmp,
                     users: tmp,
                 } });
-            let userTmp = [channel.id];
-            console.log(userTmp);
+            tmpUser.channels.push(channel.id);
             await this.prisma.user.update({
                 where: { id: id },
-                data: { channels: userTmp },
+                data: { channels: tmpUser.channels },
             });
             return channel;
         }
@@ -42,22 +42,28 @@ let ChannelsService = class ChannelsService {
         }
     }
     async addUserToChannel(userId, channelId) {
-        const user = await this.prisma.user.findUnique({ where: { id: userId } });
-        const channel = await this.prisma.channel.findUnique({ where: { id: channelId } });
-        let tmp = channel.users;
-        let userChannels = user.channels;
-        if (!tmp.includes(userId) && !channel.bannedUsers.includes(userId))
-            userChannels.push(channelId);
-        tmp.push(userId);
-        if (user && channel) {
-            await this.prisma.user.update({
-                where: { id: userId },
-                data: { channels: userChannels },
-            });
-            await this.prisma.channel.update({
-                where: { id: channelId },
-                data: { users: tmp },
-            });
+        try {
+            const user = await this.prisma.user.findUnique({ where: { id: userId } });
+            const channel = await this.prisma.channel.findUnique({ where: { id: channelId } });
+            let tmp = [];
+            let userChannels = [];
+            if (user && channel && !tmp.includes(userId) && !channel.bannedUsers.includes(userId)) {
+                tmp = channel.users;
+                userChannels = user.channels;
+                userChannels.push(channelId);
+                tmp.push(userId);
+                await this.prisma.user.update({
+                    where: { id: userId },
+                    data: { channels: userChannels },
+                });
+                await this.prisma.channel.update({
+                    where: { id: channelId },
+                    data: { users: tmp },
+                });
+            }
+        }
+        catch (error) {
+            console.log(`no such user or channel`);
         }
     }
     async removeUserFromChannel(userId, channelId) {
@@ -82,6 +88,8 @@ let ChannelsService = class ChannelsService {
                     if (channel.admins[index] != userId)
                         adminChannel.push(channel.admins[index]);
                 }
+                if (adminChannel.length == 0)
+                    adminChannel = [];
                 await this.prisma.channel.update({
                     where: { id: channelId },
                     data: { admins: adminChannel },
@@ -89,6 +97,10 @@ let ChannelsService = class ChannelsService {
             }
             console.log(tmpUser);
             console.log(tmpChannel);
+            if (tmpUser.length == 0)
+                tmpUser = [];
+            if (tmpChannel.length == 0)
+                tmpChannel = [];
             await this.prisma.user.update({
                 where: { id: userId },
                 data: { channels: tmpUser },
@@ -99,15 +111,20 @@ let ChannelsService = class ChannelsService {
             });
         }
     }
-    async banUserFromChannel(userId, channelId) {
-        const user = await this.prisma.user.findUnique({ where: { id: userId } });
-        const channel = await this.prisma.channel.findUnique({ where: { id: channelId } });
-        if (user && channel && channel.users.includes(userId)) {
-            await this.removeUserFromChannel(userId, channelId);
-            channel.bannedUsers.push(userId);
+    async banUserFromChannel(username, channelName) {
+        const user = await this.prisma.user.findFirst({ where: { username: username } });
+        const channel = await this.prisma.channel.findUnique({ where: { name: channelName } });
+        let Ban;
+        console.log(channel);
+        if (user && channel) {
+            console.log("testing");
+            Ban = channel.bannedUsers;
+            await this.removeUserFromChannel(user.id, channel.id);
+            Ban.push(user.id);
+            console.log(Ban);
             await this.prisma.channel.update({
-                where: { id: channelId },
-                data: { bannedUsers: channel.bannedUsers }
+                where: { id: channel.id },
+                data: { bannedUsers: Ban }
             });
         }
     }

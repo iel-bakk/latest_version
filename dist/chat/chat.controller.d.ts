@@ -27,6 +27,9 @@ export declare class ChatController {
     removeUserFromChannel(req: Request & {
         user: UserDto;
     }, username: string, channelName: string): Promise<void>;
+    banUserFromChannel(req: Request & {
+        user: UserDto;
+    }, username: string, channelName: string): Promise<void>;
     accepteInvite(req: Request & {
         user: UserDto;
     }, invite: InviteDto): Promise<FriendDto | string>;

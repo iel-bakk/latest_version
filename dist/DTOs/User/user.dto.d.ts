@@ -6,4 +6,5 @@ export declare class UserDto {
     achievements: string[];
     TwoFASecret: string;
     IsEnabled: boolean;
+    channels: string[];
 }

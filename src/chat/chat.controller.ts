@@ -42,9 +42,11 @@ export class ChatController {
     async addUserToChannel(@Body('channelName') channelName : string, @Body('username') username : string, @Req() req : Request & {user : UserDto}) {
         let channel : channelDto = await this.channel.getChannelByName(channelName);
         let tmpUser : UserDto = await this.user.getUserByUsername(username);
-        console.log(channel);
-        console.log(tmpUser);
-        await this.channel.addUserToChannel(tmpUser.id, channel.id);
+        if (tmpUser && channel) {
+            console.log(channel);
+            console.log(tmpUser);
+            await this.channel.addUserToChannel(tmpUser.id, channel.id);
+        }
     }
     
 
@@ -65,6 +67,15 @@ export class ChatController {
         }
         catch (error) {
             console.log(`could not delete the user`);
+        }
+    }
+
+    @Post('BanUserFromChannel')
+    @UseGuards(JwtAuth)
+    async   banUserFromChannel(@Req() req: Request & {user : UserDto}, @Body('username') username: string, @Body('channelName') channelName: string) {
+        let channelTmp : channelDto = await this.channel.getChannelByName(channelName)
+        if (channelTmp && channelTmp.admins.includes(req.user.id)) {
+            await this.channel.banUserFromChannel(username, channelName);
         }
     }
 

@@ -6,6 +6,6 @@ export declare class ChannelsService {
     createChannel(channelData: channelDto, id: string): Promise<any>;
     addUserToChannel(userId: string, channelId: string): Promise<void>;
     removeUserFromChannel(userId: string, channelId: string): Promise<void>;
-    banUserFromChannel(userId: string, channelId: string): Promise<void>;
+    banUserFromChannel(username: string, channelName: string): Promise<void>;
     getChannelByName(channelName: string): Promise<channelDto>;
 }

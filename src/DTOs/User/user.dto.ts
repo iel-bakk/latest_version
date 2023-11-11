@@ -19,6 +19,8 @@ export class UserDto {
     TwoFASecret: string;
 
     IsEnabled: boolean;
+
+    channels : string[];
 }
 
 // https://photos.app.goo.gl/2v1UP58NK5cs3qhP9

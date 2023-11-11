@@ -49,9 +49,11 @@ let ChatController = class ChatController {
     async addUserToChannel(channelName, username, req) {
         let channel = await this.channel.getChannelByName(channelName);
         let tmpUser = await this.user.getUserByUsername(username);
-        console.log(channel);
-        console.log(tmpUser);
-        await this.channel.addUserToChannel(tmpUser.id, channel.id);
+        if (tmpUser && channel) {
+            console.log(channel);
+            console.log(tmpUser);
+            await this.channel.addUserToChannel(tmpUser.id, channel.id);
+        }
     }
     async removeUserFromChannel(req, username, channelName) {
         console.log(`username recieved from body : ${username}`);
@@ -66,6 +68,12 @@ let ChatController = class ChatController {
         }
         catch (error) {
             console.log(`could not delete the user`);
+        }
+    }
+    async banUserFromChannel(req, username, channelName) {
+        let channelTmp = await this.channel.getChannelByName(channelName);
+        if (channelTmp && channelTmp.admins.includes(req.user.id)) {
+            await this.channel.banUserFromChannel(username, channelName);
         }
     }
     async accepteInvite(req, invite) {
@@ -123,6 +131,16 @@ __decorate([
     __metadata("design:paramtypes", [Object, String, String]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "removeUserFromChannel", null);
+__decorate([
+    (0, common_1.Post)('BanUserFromChannel'),
+    (0, common_1.UseGuards)(jwt_guard_1.JwtAuth),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)('username')),
+    __param(2, (0, common_1.Body)('channelName')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:returntype", Promise)
+], ChatController.prototype, "banUserFromChannel", null);
 __decorate([
     (0, common_1.Put)('accepteInvite'),
     (0, common_1.UseGuards)(jwt_guard_1.JwtAuth),
