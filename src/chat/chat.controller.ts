@@ -34,7 +34,6 @@ export class ChatController {
     @Post('createChannel')
     @UseGuards(JwtAuth)
     async createChannel(@Body() channelData : channelDto, @Req() req: Request & {user : UserDto}, @Res() res : Response) : Promise<any> {
-        try {
             if ((channelData.IsPrivate && channelData.IsProtected) || (channelData.IsPrivate && channelData.password.length))
                 return `can't have private channel with password.`
             if (channelData.IsProtected && channelData.password.length == 0)
@@ -42,19 +41,11 @@ export class ChatController {
             if (!channelData.IsProtected && channelData.password.length)
                 return `can't set password to none protected chat rooms`
             return await this.channel.createChannel(channelData, req.user.id);
-        }
-        catch (error) {
-            res.status(400).json({message: 'invalid request .'})
-            console.log('invalid data in request');
-        }
-        console.log('done creating channel.');
     }
 
     @Post('ChannelAddUser')
     @UseGuards(JwtAuth)
     async addUserToChannel(@Body() channelName: channelDto, @Body('username') username : string, @Req() req : Request & {user : UserDto}, @Res() res: Response) {
-        try {
-
             let channel : channelDto = await this.channel.getChannelByName(channelName.name);
             let tmpUser : UserDto = await this.user.getUserByUsername(username);
             if (tmpUser && channel) {
@@ -67,10 +58,6 @@ export class ChatController {
                 }
             }
         }
-        catch (error) {
-            res.status(400).json({message: 'invalid request .'})
-        }
-        }
     
 
     @Delete('removeUserFromChannel')
@@ -81,8 +68,6 @@ export class ChatController {
         let  tmpchannel : channelDto = await this.channel.getChannelByName(channelName)
         console.log(`user to delete : `, tmpUser);
         console.log(`channel : `, tmpchannel);
-        try {
-
             if ( tmpUser && tmpchannel && tmpchannel.admins.includes(req.user.id) && tmpchannel.users.includes(tmpUser.id))
             {
                 if (tmpUser.id == tmpchannel.owner && req.user.id == tmpchannel.owner)
@@ -94,18 +79,11 @@ export class ChatController {
                     await this.channel.deleteChannel(check.id);
                 console.log(check.users)
             }
-        }
-        catch (error) {
-            res.status(400).json({message: 'invalid request .'})
-            console.log(`could not delete the user`);
-        }
     }
 
     @Post('BanUserFromChannel')
     @UseGuards(JwtAuth)
     async   banUserFromChannel(@Req() req: Request & {user : UserDto}, @Body('username') username: string, @Body('channelName') channelName: string, @Res() res: Response) {
-        try {
-
             let channelTmp : channelDto = await this.channel.getChannelByName(channelName)
             let userTmp : UserDto = await this.user.getUserByUsername(username)
             if (channelTmp && userTmp && channelTmp.admins.includes(req.user.id)) {
@@ -113,27 +91,17 @@ export class ChatController {
                 await this.channel.banUserFromChannel(username, channelName);
             else if (userTmp.id != channelTmp.owner)
             await this.channel.banUserFromChannel(username, channelName);
-    }
-    }
-    catch (error) {
-        res.status(400).json({message: 'invalid request .'})
-    }
+            }
     }
     
     @Post('unBanUserFromChannel')
     @UseGuards(JwtAuth)
     async   unBanUserFromChannel(@Req() req: Request & {user : UserDto}, @Body('username') username: string, @Body('channelName') channelName: string, @Res() res: Response) {
-        try {
-
             let channelTmp : channelDto = await this.channel.getChannelByName(channelName)
             let userTmp : UserDto = await this.user.getUserByUsername(username)
             if (channelTmp && userTmp && channelTmp.admins.includes(req.user.id) && channelTmp.bannedUsers.includes(userTmp.id)) {
                 await this.channel.unBanUserFromChannel(username, channelName);
             }
-        }
-        catch (error) {
-            res.status(400).json({message: 'invalid request .'})
-        }
     }
 
     @Put('accepteInvite')
@@ -152,47 +120,30 @@ export class ChatController {
     @Post('addAdminToChannel')
     @UseGuards(JwtAuth)
     async   addAdminToChannel(@Req() req : Request & {user : UserDto}, @Body('username') username : string, @Body('channelName') channelName: string, @Res() res: Response) {
-        try {
-            await this.channel.assignAdminToChannel(username, channelName);
-        }
-        catch (error) {
-            res.status(400).json({message: 'invalid request .'})
-        }
+        await this.channel.assignAdminToChannel(username, channelName);
     }
     
     
     @Post('removeAdminToChannel')
     @UseGuards(JwtAuth)
     async   removeAdminFromChannel(@Req() req : Request & {user : UserDto}, @Body('username') username : string, @Body('channelName') channelName: string, @Res() res: Response) {
-        try {
-
-            let channel : channelDto = await this.channel.getChannelByName(channelName)
-            let userTmp : UserDto = await this.user.getUserByUsername(username)
-            if (userTmp && channel && channel.admins.includes(req.user.id)) {
-                if (channel.owner == userTmp.id && req.user.id == channel.owner)
-                await this.channel.removeAdminPrivilageToUser(username, channelName);
-            else if (channel.owner != userTmp.id)
+        let channel : channelDto = await this.channel.getChannelByName(channelName)
+        let userTmp : UserDto = await this.user.getUserByUsername(username)
+        if (userTmp && channel && channel.admins.includes(req.user.id)) {
+            if (channel.owner == userTmp.id && req.user.id == channel.owner)
             await this.channel.removeAdminPrivilageToUser(username, channelName);
-        }
-        }
-        catch (error) {
-            res.status(400).json({message: 'invalid request .'})
-        }
+        else if (channel.owner != userTmp.id)
+        await this.channel.removeAdminPrivilageToUser(username, channelName);
+    }
 }
 
     @UseGuards(JwtAuth)
     @Post('addPasswordToChannel')
     async addPasswordToChannel(@Body() channleData : channelDto, @Req() req: Request & {user : UserDto}, @Res() res: Response) {
-        try {
-
             let channel : channelDto = await this.channel.getChannelByName(channleData.name)
             if (channel && channel.owner == req.user.id) {
                 await this.channel.setPasswordToChannel(channel.password, channleData.name)
             }
-        }
-        catch (error) {
-            res.status(400).json({message: 'invalid request .'})
-        }
     }
 
 }

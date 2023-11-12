@@ -44,37 +44,25 @@ let ChatController = class ChatController {
         return tmp;
     }
     async createChannel(channelData, req, res) {
-        try {
-            if ((channelData.IsPrivate && channelData.IsProtected) || (channelData.IsPrivate && channelData.password.length))
-                return `can't have private channel with password.`;
-            if (channelData.IsProtected && channelData.password.length == 0)
-                return `can't have empty passwords on protected chat rooms`;
-            if (!channelData.IsProtected && channelData.password.length)
-                return `can't set password to none protected chat rooms`;
-            return await this.channel.createChannel(channelData, req.user.id);
-        }
-        catch (error) {
-            res.status(400).json({ message: 'invalid request .' });
-            console.log('invalid data in request');
-        }
-        console.log('done creating channel.');
+        if ((channelData.IsPrivate && channelData.IsProtected) || (channelData.IsPrivate && channelData.password.length))
+            return `can't have private channel with password.`;
+        if (channelData.IsProtected && channelData.password.length == 0)
+            return `can't have empty passwords on protected chat rooms`;
+        if (!channelData.IsProtected && channelData.password.length)
+            return `can't set password to none protected chat rooms`;
+        return await this.channel.createChannel(channelData, req.user.id);
     }
     async addUserToChannel(channelName, username, req, res) {
-        try {
-            let channel = await this.channel.getChannelByName(channelName.name);
-            let tmpUser = await this.user.getUserByUsername(username);
-            if (tmpUser && channel) {
-                channel.password = channelName.password;
-                if (channel.IsPrivate && req.user.id == channel.owner) {
-                    await this.channel.addUserToChannel(tmpUser.id, channel);
-                }
-                else if (!channel.IsPrivate) {
-                    await this.channel.addUserToChannel(tmpUser.id, channel);
-                }
+        let channel = await this.channel.getChannelByName(channelName.name);
+        let tmpUser = await this.user.getUserByUsername(username);
+        if (tmpUser && channel) {
+            channel.password = channelName.password;
+            if (channel.IsPrivate && req.user.id == channel.owner) {
+                await this.channel.addUserToChannel(tmpUser.id, channel);
             }
-        }
-        catch (error) {
-            res.status(400).json({ message: 'invalid request .' });
+            else if (!channel.IsPrivate) {
+                await this.channel.addUserToChannel(tmpUser.id, channel);
+            }
         }
     }
     async removeUserFromChannel(req, username, channelName, res) {
@@ -83,48 +71,32 @@ let ChatController = class ChatController {
         let tmpchannel = await this.channel.getChannelByName(channelName);
         console.log(`user to delete : `, tmpUser);
         console.log(`channel : `, tmpchannel);
-        try {
-            if (tmpUser && tmpchannel && tmpchannel.admins.includes(req.user.id) && tmpchannel.users.includes(tmpUser.id)) {
-                if (tmpUser.id == tmpchannel.owner && req.user.id == tmpchannel.owner)
-                    await this.channel.removeUserFromChannel(tmpUser.id, tmpchannel.id);
-                else if (tmpUser.id != tmpchannel.owner)
-                    await this.channel.removeUserFromChannel(tmpUser.id, tmpchannel.id);
-                let check = await this.channel.getChannelByName(channelName);
-                if (check && !check.users.length)
-                    await this.channel.deleteChannel(check.id);
-                console.log(check.users);
-            }
-        }
-        catch (error) {
-            res.status(400).json({ message: 'invalid request .' });
-            console.log(`could not delete the user`);
+        if (tmpUser && tmpchannel && tmpchannel.admins.includes(req.user.id) && tmpchannel.users.includes(tmpUser.id)) {
+            if (tmpUser.id == tmpchannel.owner && req.user.id == tmpchannel.owner)
+                await this.channel.removeUserFromChannel(tmpUser.id, tmpchannel.id);
+            else if (tmpUser.id != tmpchannel.owner)
+                await this.channel.removeUserFromChannel(tmpUser.id, tmpchannel.id);
+            let check = await this.channel.getChannelByName(channelName);
+            if (check && !check.users.length)
+                await this.channel.deleteChannel(check.id);
+            console.log(check.users);
         }
     }
     async banUserFromChannel(req, username, channelName, res) {
-        try {
-            let channelTmp = await this.channel.getChannelByName(channelName);
-            let userTmp = await this.user.getUserByUsername(username);
-            if (channelTmp && userTmp && channelTmp.admins.includes(req.user.id)) {
-                if (userTmp.id == channelTmp.owner && userTmp.id == req.user.id)
-                    await this.channel.banUserFromChannel(username, channelName);
-                else if (userTmp.id != channelTmp.owner)
-                    await this.channel.banUserFromChannel(username, channelName);
-            }
-        }
-        catch (error) {
-            res.status(400).json({ message: 'invalid request .' });
+        let channelTmp = await this.channel.getChannelByName(channelName);
+        let userTmp = await this.user.getUserByUsername(username);
+        if (channelTmp && userTmp && channelTmp.admins.includes(req.user.id)) {
+            if (userTmp.id == channelTmp.owner && userTmp.id == req.user.id)
+                await this.channel.banUserFromChannel(username, channelName);
+            else if (userTmp.id != channelTmp.owner)
+                await this.channel.banUserFromChannel(username, channelName);
         }
     }
     async unBanUserFromChannel(req, username, channelName, res) {
-        try {
-            let channelTmp = await this.channel.getChannelByName(channelName);
-            let userTmp = await this.user.getUserByUsername(username);
-            if (channelTmp && userTmp && channelTmp.admins.includes(req.user.id) && channelTmp.bannedUsers.includes(userTmp.id)) {
-                await this.channel.unBanUserFromChannel(username, channelName);
-            }
-        }
-        catch (error) {
-            res.status(400).json({ message: 'invalid request .' });
+        let channelTmp = await this.channel.getChannelByName(channelName);
+        let userTmp = await this.user.getUserByUsername(username);
+        if (channelTmp && userTmp && channelTmp.admins.includes(req.user.id) && channelTmp.bannedUsers.includes(userTmp.id)) {
+            await this.channel.unBanUserFromChannel(username, channelName);
         }
     }
     async accepteInvite(req, invite) {
@@ -137,37 +109,22 @@ let ChatController = class ChatController {
         return this.friend.createFriend(new friend_dto_1.FriendDto(invite.invitationRecieverId, invite.invitationSenderId, ''), req.user.id);
     }
     async addAdminToChannel(req, username, channelName, res) {
-        try {
-            await this.channel.assignAdminToChannel(username, channelName);
-        }
-        catch (error) {
-            res.status(400).json({ message: 'invalid request .' });
-        }
+        await this.channel.assignAdminToChannel(username, channelName);
     }
     async removeAdminFromChannel(req, username, channelName, res) {
-        try {
-            let channel = await this.channel.getChannelByName(channelName);
-            let userTmp = await this.user.getUserByUsername(username);
-            if (userTmp && channel && channel.admins.includes(req.user.id)) {
-                if (channel.owner == userTmp.id && req.user.id == channel.owner)
-                    await this.channel.removeAdminPrivilageToUser(username, channelName);
-                else if (channel.owner != userTmp.id)
-                    await this.channel.removeAdminPrivilageToUser(username, channelName);
-            }
-        }
-        catch (error) {
-            res.status(400).json({ message: 'invalid request .' });
+        let channel = await this.channel.getChannelByName(channelName);
+        let userTmp = await this.user.getUserByUsername(username);
+        if (userTmp && channel && channel.admins.includes(req.user.id)) {
+            if (channel.owner == userTmp.id && req.user.id == channel.owner)
+                await this.channel.removeAdminPrivilageToUser(username, channelName);
+            else if (channel.owner != userTmp.id)
+                await this.channel.removeAdminPrivilageToUser(username, channelName);
         }
     }
     async addPasswordToChannel(channleData, req, res) {
-        try {
-            let channel = await this.channel.getChannelByName(channleData.name);
-            if (channel && channel.owner == req.user.id) {
-                await this.channel.setPasswordToChannel(channel.password, channleData.name);
-            }
-        }
-        catch (error) {
-            res.status(400).json({ message: 'invalid request .' });
+        let channel = await this.channel.getChannelByName(channleData.name);
+        if (channel && channel.owner == req.user.id) {
+            await this.channel.setPasswordToChannel(channel.password, channleData.name);
         }
     }
 };

@@ -10,7 +10,6 @@ export class ChannelsService {
  async createChannel(channelData: channelDto , id : string) : Promise<any> {
     console.log(`the users id ${id}`);
     let tmp : string[] = [id];
-    // try {
       let check : channelDto = await this.getChannelByName(channelData.name)
       let tmpUser : UserDto = await this.prisma.user.findUnique({where : {id : id}})
       if (check || !tmpUser)
@@ -31,11 +30,7 @@ export class ChannelsService {
             where: { id: id },
             data: { channels: tmpUser.channels },
           });
-          return channel;
-      // }
-      // catch (error) {
-      //   console.log('error');
-      // }
+      return channel;
  }
 
  async addUserToChannel(userId: string, _channel : channelDto) {
