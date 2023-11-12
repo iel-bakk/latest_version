@@ -1,9 +1,11 @@
 import { channelDto } from 'src/DTOs/channel/channel.dto';
+import { channelMessageDto } from 'src/DTOs/channel/channel.messages.dto';
 import { PrismaService } from 'src/modules/database/prisma.service';
 export declare class ChannelsService {
     private prisma;
     constructor(prisma: PrismaService);
     createChannel(channelData: channelDto, id: string): Promise<any>;
+    createChannelMessage(message: channelMessageDto): Promise<any>;
     addUserToChannel(userId: string, _channel: channelDto): Promise<any>;
     removeUserFromChannel(userId: string, channelId: string): Promise<any>;
     banUserFromChannel(username: string, channelName: string): Promise<any>;

@@ -1,14 +1,19 @@
 import { JwtService } from "@nestjs/jwt";
 import {  MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
+import { UserDto } from "src/DTOs/User/user.dto";
+import { channelDto } from "src/DTOs/channel/channel.dto";
+import { channelMessageDto } from "src/DTOs/channel/channel.messages.dto";
 import { messageDto } from "src/DTOs/message/message.dto";
 import { converationRepositroy } from "src/modules/conversation/conversation.repository";
 import { messageRepository } from "src/modules/message/message.repository";
 import { UsersRepository } from "src/modules/users/users.repository";
+import { ChannelsService } from "./chat.service";
+import { use } from "passport";
 
 @WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
-    constructor (private jwtService: JwtService, private user: UsersRepository, private conversation : converationRepositroy, private message: messageRepository) {
+    constructor (private jwtService: JwtService, private user: UsersRepository, private conversation : converationRepositroy, private message: messageRepository, private channel : ChannelsService) {
         this.clientsMap = new Map<string, Socket>();
     }
     @WebSocketServer() server: Server;
@@ -16,17 +21,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
 
     async handleConnection(client: Socket, ...args: any[]) {
       try {
-            const jwt:any = client.handshake.headers.jwt;
-            const user =  this.jwtService.verify(jwt);
-            // console.log(user);
-            // username  ==>   check if exist
-            // extract userId  then check that userId ==> user
-            console.log(user)
-            const test = await this.user.getUserById(user.sub)
-          if (test) {
-            this.clientsMap.set(test.id, client);
-            console.log(`this is a test : ${test.id} ****`)
-          }
+            let cookie : string = client.client.request.headers.cookie;
+            if (cookie) {
+              const jwt:string = cookie.substring(cookie.indexOf('=') + 1)
+              console.log('here is the jwt : ', jwt);
+              let user;
+              user =  this.jwtService.verify(jwt);
+              console.log('here');
+              console.log(user)
+              if (user) {
+                const test = await this.user.getUserById(user.sub)
+                if (test) {
+                  console.log(test.id);
+                  this.clientsMap.set(test.id, client);
+                  console.log(`this is a test : ${test.id} ****`)
+                }
+              }
+            }
           else {
             console.log("user dosen't exist in database");
             client.emit('ERROR', "RAH KAN3REF BAK, IHCHEM")
@@ -34,7 +45,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
           }
         }
         catch (error) {
-        console.log("invalid data : check JWT or DATABASE QUERIES")
+          console.log("user dosen't exist in database");
+          client.emit('ERROR', "RAH KAN3REF BAK, IHCHEM")
+          client.disconnect()
+          console.log("invalid data : check JWT or DATABASE QUERIES")
       }
   }
 
@@ -42,6 +56,41 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
             this.clientsMap.delete(client.id); // Remove the client from the map when disconnected
         }
 
+
+      @SubscribeMessage('channelMessage')
+      async handleChannelMessage(@MessageBody() message: channelMessageDto) {
+        try {
+          let _user : UserDto = await this.user.getUserByUsername(message.sender)
+          let channel : channelDto = await this.channel.getChannelByName(message.channelName)
+          if (_user && channel && channel.users.includes(_user.id))  {
+            // console.log(' channel : ', channel);
+            console.log(message.sender);
+            // console.log(_user.id);
+            // console.log(channel.users.includes(_user.id));
+              channel.users.forEach((user) => {
+                let socket: Socket = this.clientsMap.get(_user.id)
+                if (socket && user != _user.id && channel.users.includes(user)) {
+                  console.log('reciever : ',user);
+                  socket.emit('channelMessage', message);
+                }
+              })
+              // await this.channel.createChannelMessage(message)
+              
+            }
+            else {
+              let socket: Socket = this.clientsMap.get(_user.id)
+              if (socket) {
+                // console.log(socket);
+                console.log('send error message');
+                socket.emit('ERROR', 'SERVER : your not in channel .');
+              }
+            }
+        }
+        catch (error) {
+          console.log('error while sending channel message .');
+        }
+      }
+      
       @SubscribeMessage('SendMessage')
         async hanldeMessage(@MessageBody() message: messageDto) {
           try {

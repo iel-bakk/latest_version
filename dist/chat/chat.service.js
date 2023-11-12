@@ -24,21 +24,34 @@ let ChannelsService = class ChannelsService {
         if (check || !tmpUser)
             return `couldn't creat channel`;
         console.log(channelData);
-        let channel = await this.prisma.channel.create({ data: {
-                name: channelData.name,
-                admins: tmp,
-                users: tmp,
-                owner: tmpUser.id,
-                IsPrivate: channelData.IsPrivate,
-                IsProtected: channelData.IsProtected,
-                password: channelData.password
-            } });
-        tmpUser.channels.push(channel.id);
-        await this.prisma.user.update({
-            where: { id: id },
-            data: { channels: tmpUser.channels },
-        });
-        return channel;
+        if (channelData.name) {
+            let channel = await this.prisma.channel.create({ data: {
+                    name: channelData.name,
+                    admins: tmp,
+                    users: tmp,
+                    owner: tmpUser.id,
+                    IsPrivate: channelData.IsPrivate,
+                    IsProtected: channelData.IsProtected,
+                    password: channelData.password
+                } });
+            tmpUser.channels.push(channel.id);
+            await this.prisma.user.update({
+                where: { id: id },
+                data: { channels: tmpUser.channels },
+            });
+            return channel;
+        }
+        else
+            return 'wrong data';
+    }
+    async createChannelMessage(message) {
+        if (message) {
+            return this.prisma.channelMessage.create({ data: {
+                    sender: message.sender,
+                    content: message.content,
+                    channelName: message.channelName,
+                } });
+        }
     }
     async addUserToChannel(userId, _channel) {
         try {
