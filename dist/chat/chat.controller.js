@@ -45,12 +45,19 @@ let ChatController = class ChatController {
     }
     async createChannel(channelData, req, res) {
         try {
+            if ((channelData.IsPrivate && channelData.IsProtected) || (channelData.IsPrivate && channelData.password.length))
+                return `can't have private channel with password.`;
+            if (channelData.IsProtected && channelData.password.length == 0)
+                return `can't have empty passwords on protected chat rooms`;
+            if (!channelData.IsProtected && channelData.password.length)
+                return `can't set password to none protected chat rooms`;
             return await this.channel.createChannel(channelData, req.user.id);
         }
         catch (error) {
             res.status(400).json({ message: 'invalid request .' });
             console.log('invalid data in request');
         }
+        console.log('done creating channel.');
     }
     async addUserToChannel(channelName, username, req, res) {
         try {

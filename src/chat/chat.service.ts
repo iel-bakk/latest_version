@@ -14,7 +14,7 @@ export class ChannelsService {
       let check : channelDto = await this.getChannelByName(channelData.name)
       let tmpUser : UserDto = await this.prisma.user.findUnique({where : {id : id}})
       if (check || !tmpUser)
-        return
+        return null
       console.log(channelData);
       let channel: channelDto = await this.prisma.channel.create({data : {
         name : channelData.name,

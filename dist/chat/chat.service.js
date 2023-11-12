@@ -22,7 +22,7 @@ let ChannelsService = class ChannelsService {
         let check = await this.getChannelByName(channelData.name);
         let tmpUser = await this.prisma.user.findUnique({ where: { id: id } });
         if (check || !tmpUser)
-            return;
+            return null;
         console.log(channelData);
         let channel = await this.prisma.channel.create({ data: {
                 name: channelData.name,
