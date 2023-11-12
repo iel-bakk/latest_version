@@ -34,8 +34,11 @@ let ProfileController = class ProfileController {
         if (!_achievements.length)
             await this.achievement.CreateAchievment(this.file);
         const _matches = await this.match.findMatchesByUserId(id);
+        let tmpUser = await this.user.getUserById(id);
+        if (!tmpUser)
+            return 'no such user.';
         let profileData = {
-            userData: await this.user.getUserById(id),
+            userData: tmpUser,
             achievements: _achievements,
             matches: [],
         };

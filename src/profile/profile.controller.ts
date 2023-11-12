@@ -21,13 +21,16 @@ export class ProfileController {
                  private friend: FriendsRepository)
                 {}
     @Get(':id')
-    async GetUserData(@Param('id') id: string) : Promise<UserData> {
+    async GetUserData(@Param('id') id: string) : Promise<UserData | string> {
         const _achievements : AchievementDto[] = await this.achievement.getAchievements();
         if (!_achievements.length)
             await this.achievement.CreateAchievment(this.file);
         const _matches: MatchDto[] =  await this.match.findMatchesByUserId(id)
+        let tmpUser : UserDto  = await this.user.getUserById(id)
+        if (!tmpUser)
+            return 'no such user.'
         let profileData : UserData = {
-            userData : await this.user.getUserById(id),
+            userData : tmpUser,
             achievements : _achievements,
             matches : [],
         }

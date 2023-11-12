@@ -13,7 +13,7 @@ export class ChannelsService {
       let check : channelDto = await this.getChannelByName(channelData.name)
       let tmpUser : UserDto = await this.prisma.user.findUnique({where : {id : id}})
       if (check || !tmpUser)
-        return null
+        return `couldn't creat channel`
       console.log(channelData);
       let channel: channelDto = await this.prisma.channel.create({data : {
         name : channelData.name,
@@ -33,7 +33,7 @@ export class ChannelsService {
       return channel;
  }
 
- async addUserToChannel(userId: string, _channel : channelDto) {
+ async addUserToChannel(userId: string, _channel : channelDto) : Promise<any>{
   try {
 
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
@@ -42,7 +42,7 @@ export class ChannelsService {
     let userChannels : string[] = [];
     if (user && channel && !tmp.includes(userId) && !channel.bannedUsers.includes(userId)) {
       if (channel.IsProtected && channel.password != _channel.password)
-        return
+        return `invalid request .`
       tmp  = channel.users;
       userChannels  = user.channels;
       userChannels.push(_channel.id);
@@ -51,7 +51,7 @@ export class ChannelsService {
         where: { id: userId },
         data: { channels: userChannels },
       });
-      await this.prisma.channel.update({
+      return await this.prisma.channel.update({
         where : {id : _channel.id},
         data : {users : tmp},
       })
@@ -59,10 +59,11 @@ export class ChannelsService {
   }
   catch (error) {
     console.log(`no such user or channel`);
+    return 'error'
   }
  }
 
- async removeUserFromChannel(userId: string, channelId: string) {
+ async removeUserFromChannel(userId: string, channelId: string) : Promise<any>{
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     const channel = await this.prisma.channel.findUnique({ where: { id: channelId } });
     let tmpUser : string[] = [];
@@ -103,14 +104,14 @@ export class ChannelsService {
             data : {channels : tmpUser},    
         },
         );
-        await this.prisma.channel.update({
+        return await this.prisma.channel.update({
             where : {id : channelId},
             data : {users : tmpChannel},
         })
     }
  }
 
- async banUserFromChannel(username: string, channelName: string) {
+ async banUserFromChannel(username: string, channelName: string) : Promise<any> {
     const user : UserDto = await this.prisma.user.findFirst({ where: { username: username } });
     const channel : channelDto = await this.prisma.channel.findUnique({ where: { name: channelName } });
     let Ban : string[];
@@ -121,17 +122,18 @@ export class ChannelsService {
       await this.removeUserFromChannel(user.id, channel.id);
       Ban.push(user.id);
       console.log(Ban);
-      await this.prisma.channel.update({
+      return await this.prisma.channel.update({
         where: { id: channel.id },
         data: { bannedUsers: Ban } },
       );
     }
  }
 
- async unBanUserFromChannel(username : string, channelName : string) {
+ async unBanUserFromChannel(username : string, channelName : string) : Promise<any> {
   let user : UserDto = await this.prisma.user.findFirst({where : {username : username}})
   let channel : channelDto = await this.prisma.channel.findUnique({where : {name : channelName}})
   let tmp : string[] = [];
+  let _return : channelDto 
   if (user && channel) {
     if (channel.bannedUsers.includes(user.id)) {
         for (let index = 0; index < channel.bannedUsers.length; index++) {
@@ -139,31 +141,32 @@ export class ChannelsService {
             tmp.push(channel.bannedUsers[index]);
         }
         console.log(tmp);
-        await this.prisma.channel.update({where : {id : channel.id},
+        _return  = await this.prisma.channel.update({where : {id : channel.id},
           data : {bannedUsers : tmp}})
         }
         await this.addUserToChannel(user.id, channel);
+        return _return
   }
  }
 
  async getChannelByName(channelName: string) : Promise<channelDto> {
     return await this.prisma.channel.findFirst({where : {name : channelName}});
  }
- async assignAdminToChannel(userName: string, channelName: string) {
+ async assignAdminToChannel(userName: string, channelName: string) : Promise<any> {
     const user = await this.prisma.user.findFirst({ where: { username: userName } });
     const channel = await this.prisma.channel.findUnique({ where: { name: channelName } });
     if (user && channel && channel.users.includes(user.id) && !channel.admins.includes(user.id)) {
       console.log('ghehehe');
       
       channel.admins.push(user.id)
-        await this.prisma.channel.update({where : {id : channel.id},
+        return await this.prisma.channel.update({where : {id : channel.id},
           data : {
             admins : channel.admins,
           }})
     }
  }
 
- async removeAdminPrivilageToUser(username : string, channelName : string) {
+ async removeAdminPrivilageToUser(username : string, channelName : string) : Promise<any> {
     let channel : channelDto = await this.getChannelByName(channelName);
     let user : UserDto = await this.prisma.user.findFirst({where : {username : username}})
     let tmp : string[] = []
@@ -175,19 +178,19 @@ export class ChannelsService {
           if (user.id != channel.admins[index])
             tmp.push(channel.admins[index])
         }
-        await this.prisma.channel.update({where : {id : channel.id} , 
+        return await this.prisma.channel.update({where : {id : channel.id} , 
         data : {admins : tmp}})
       }
     }
  }
 
- async deleteChannel(channelId : string) {
+ async deleteChannel(channelId : string) : Promise<any> {
     await this.prisma.channel.delete({where : {id : channelId}})
  }
  async setPasswordToChannel(password: string, channelName : string) {
     let channel : channelDto = await this.getChannelByName(channelName)
     if (channel) {
-      await this.prisma.channel.update({where : {id: channel.id},
+      return await this.prisma.channel.update({where : {id: channel.id},
       data : {
         IsProtected : true,
         password : password,

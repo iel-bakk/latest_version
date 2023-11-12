@@ -43,16 +43,18 @@ let ChatController = class ChatController {
             return `Already Friends`;
         return tmp;
     }
-    async createChannel(channelData, req, res) {
+    async createChannel(channelData, req) {
         if ((channelData.IsPrivate && channelData.IsProtected) || (channelData.IsPrivate && channelData.password.length))
             return `can't have private channel with password.`;
         if (channelData.IsProtected && channelData.password.length == 0)
             return `can't have empty passwords on protected chat rooms`;
         if (!channelData.IsProtected && channelData.password.length)
             return `can't set password to none protected chat rooms`;
-        return await this.channel.createChannel(channelData, req.user.id);
+        let test = await this.channel.createChannel(channelData, req.user.id);
+        console.log(test);
+        return 'channel created succefuly';
     }
-    async addUserToChannel(channelName, username, req, res) {
+    async addUserToChannel(channelName, username, req) {
         let channel = await this.channel.getChannelByName(channelName.name);
         let tmpUser = await this.user.getUserByUsername(username);
         if (tmpUser && channel) {
@@ -65,7 +67,7 @@ let ChatController = class ChatController {
             }
         }
     }
-    async removeUserFromChannel(req, username, channelName, res) {
+    async removeUserFromChannel(req, username, channelName) {
         console.log(`username recieved from body : ${username}`);
         let tmpUser = await this.user.getUserByUsername(username);
         let tmpchannel = await this.channel.getChannelByName(channelName);
@@ -82,7 +84,7 @@ let ChatController = class ChatController {
             console.log(check.users);
         }
     }
-    async banUserFromChannel(req, username, channelName, res) {
+    async banUserFromChannel(req, username, channelName) {
         let channelTmp = await this.channel.getChannelByName(channelName);
         let userTmp = await this.user.getUserByUsername(username);
         if (channelTmp && userTmp && channelTmp.admins.includes(req.user.id)) {
@@ -92,7 +94,7 @@ let ChatController = class ChatController {
                 await this.channel.banUserFromChannel(username, channelName);
         }
     }
-    async unBanUserFromChannel(req, username, channelName, res) {
+    async unBanUserFromChannel(req, username, channelName) {
         let channelTmp = await this.channel.getChannelByName(channelName);
         let userTmp = await this.user.getUserByUsername(username);
         if (channelTmp && userTmp && channelTmp.admins.includes(req.user.id) && channelTmp.bannedUsers.includes(userTmp.id)) {
@@ -108,10 +110,10 @@ let ChatController = class ChatController {
         await this.invite.deleteInvite(invite.id);
         return this.friend.createFriend(new friend_dto_1.FriendDto(invite.invitationRecieverId, invite.invitationSenderId, ''), req.user.id);
     }
-    async addAdminToChannel(req, username, channelName, res) {
+    async addAdminToChannel(req, username, channelName) {
         await this.channel.assignAdminToChannel(username, channelName);
     }
-    async removeAdminFromChannel(req, username, channelName, res) {
+    async removeAdminFromChannel(req, username, channelName) {
         let channel = await this.channel.getChannelByName(channelName);
         let userTmp = await this.user.getUserByUsername(username);
         if (userTmp && channel && channel.admins.includes(req.user.id)) {
@@ -121,7 +123,7 @@ let ChatController = class ChatController {
                 await this.channel.removeAdminPrivilageToUser(username, channelName);
         }
     }
-    async addPasswordToChannel(channleData, req, res) {
+    async addPasswordToChannel(channleData, req) {
         let channel = await this.channel.getChannelByName(channleData.name);
         if (channel && channel.owner == req.user.id) {
             await this.channel.setPasswordToChannel(channel.password, channleData.name);
@@ -149,9 +151,8 @@ __decorate([
     (0, common_1.UseGuards)(jwt_guard_1.JwtAuth),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Req)()),
-    __param(2, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [channel_dto_1.channelDto, Object, Object]),
+    __metadata("design:paramtypes", [channel_dto_1.channelDto, Object]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "createChannel", null);
 __decorate([
@@ -160,9 +161,8 @@ __decorate([
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Body)('username')),
     __param(2, (0, common_1.Req)()),
-    __param(3, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [channel_dto_1.channelDto, String, Object, Object]),
+    __metadata("design:paramtypes", [channel_dto_1.channelDto, String, Object]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "addUserToChannel", null);
 __decorate([
@@ -171,9 +171,8 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)('username')),
     __param(2, (0, common_1.Body)('channelName')),
-    __param(3, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, String, Object]),
+    __metadata("design:paramtypes", [Object, String, String]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "removeUserFromChannel", null);
 __decorate([
@@ -182,9 +181,8 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)('username')),
     __param(2, (0, common_1.Body)('channelName')),
-    __param(3, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, String, Object]),
+    __metadata("design:paramtypes", [Object, String, String]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "banUserFromChannel", null);
 __decorate([
@@ -193,9 +191,8 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)('username')),
     __param(2, (0, common_1.Body)('channelName')),
-    __param(3, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, String, Object]),
+    __metadata("design:paramtypes", [Object, String, String]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "unBanUserFromChannel", null);
 __decorate([
@@ -213,9 +210,8 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)('username')),
     __param(2, (0, common_1.Body)('channelName')),
-    __param(3, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, String, Object]),
+    __metadata("design:paramtypes", [Object, String, String]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "addAdminToChannel", null);
 __decorate([
@@ -224,9 +220,8 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)('username')),
     __param(2, (0, common_1.Body)('channelName')),
-    __param(3, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String, String, Object]),
+    __metadata("design:paramtypes", [Object, String, String]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "removeAdminFromChannel", null);
 __decorate([
@@ -234,9 +229,8 @@ __decorate([
     (0, common_1.Post)('addPasswordToChannel'),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Req)()),
-    __param(2, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [channel_dto_1.channelDto, Object, Object]),
+    __metadata("design:paramtypes", [channel_dto_1.channelDto, Object]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "addPasswordToChannel", null);
 exports.ChatController = ChatController = __decorate([

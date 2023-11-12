@@ -13,7 +13,7 @@ export declare class ProfileController {
     private file;
     private friend;
     constructor(user: UsersRepository, achievement: AchievementRepository, match: MatchesRepository, file: FileService, friend: FriendsRepository);
-    GetUserData(id: string): Promise<UserData>;
+    GetUserData(id: string): Promise<UserData | string>;
     addFriend(data: FriendDto, req: Request & {
         user: UserDto;
     }): Promise<FriendDto>;

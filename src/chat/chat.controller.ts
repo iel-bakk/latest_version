@@ -33,19 +33,22 @@ export class ChatController {
 
     @Post('createChannel')
     @UseGuards(JwtAuth)
-    async createChannel(@Body() channelData : channelDto, @Req() req: Request & {user : UserDto}, @Res() res : Response) : Promise<any> {
+    async createChannel(@Body() channelData : channelDto, @Req() req: Request & {user : UserDto}) : Promise<any> {
             if ((channelData.IsPrivate && channelData.IsProtected) || (channelData.IsPrivate && channelData.password.length))
                 return `can't have private channel with password.`
             if (channelData.IsProtected && channelData.password.length == 0)
                 return `can't have empty passwords on protected chat rooms`
             if (!channelData.IsProtected && channelData.password.length)
                 return `can't set password to none protected chat rooms`
-            return await this.channel.createChannel(channelData, req.user.id);
+
+            let test : channelDto = await this.channel.createChannel(channelData, req.user.id);
+            console.log(test);
+            return 'channel created succefuly'
     }
 
     @Post('ChannelAddUser')
     @UseGuards(JwtAuth)
-    async addUserToChannel(@Body() channelName: channelDto, @Body('username') username : string, @Req() req : Request & {user : UserDto}, @Res() res: Response) {
+    async addUserToChannel(@Body() channelName: channelDto, @Body('username') username : string, @Req() req : Request & {user : UserDto}) {
             let channel : channelDto = await this.channel.getChannelByName(channelName.name);
             let tmpUser : UserDto = await this.user.getUserByUsername(username);
             if (tmpUser && channel) {
@@ -62,7 +65,7 @@ export class ChatController {
 
     @Delete('removeUserFromChannel')
     @UseGuards(JwtAuth)
-    async removeUserFromChannel(@Req() req: Request & {user : UserDto}, @Body('username') username: string, @Body('channelName') channelName: string, @Res() res: Response) {
+    async removeUserFromChannel(@Req() req: Request & {user : UserDto}, @Body('username') username: string, @Body('channelName') channelName: string) {
         console.log(`username recieved from body : ${username}`);
         let tmpUser: UserDto = await this.user.getUserByUsername(username)
         let  tmpchannel : channelDto = await this.channel.getChannelByName(channelName)
@@ -83,7 +86,7 @@ export class ChatController {
 
     @Post('BanUserFromChannel')
     @UseGuards(JwtAuth)
-    async   banUserFromChannel(@Req() req: Request & {user : UserDto}, @Body('username') username: string, @Body('channelName') channelName: string, @Res() res: Response) {
+    async   banUserFromChannel(@Req() req: Request & {user : UserDto}, @Body('username') username: string, @Body('channelName') channelName: string) {
             let channelTmp : channelDto = await this.channel.getChannelByName(channelName)
             let userTmp : UserDto = await this.user.getUserByUsername(username)
             if (channelTmp && userTmp && channelTmp.admins.includes(req.user.id)) {
@@ -96,7 +99,7 @@ export class ChatController {
     
     @Post('unBanUserFromChannel')
     @UseGuards(JwtAuth)
-    async   unBanUserFromChannel(@Req() req: Request & {user : UserDto}, @Body('username') username: string, @Body('channelName') channelName: string, @Res() res: Response) {
+    async   unBanUserFromChannel(@Req() req: Request & {user : UserDto}, @Body('username') username: string, @Body('channelName') channelName: string) {
             let channelTmp : channelDto = await this.channel.getChannelByName(channelName)
             let userTmp : UserDto = await this.user.getUserByUsername(username)
             if (channelTmp && userTmp && channelTmp.admins.includes(req.user.id) && channelTmp.bannedUsers.includes(userTmp.id)) {
@@ -119,14 +122,14 @@ export class ChatController {
 
     @Post('addAdminToChannel')
     @UseGuards(JwtAuth)
-    async   addAdminToChannel(@Req() req : Request & {user : UserDto}, @Body('username') username : string, @Body('channelName') channelName: string, @Res() res: Response) {
+    async   addAdminToChannel(@Req() req : Request & {user : UserDto}, @Body('username') username : string, @Body('channelName') channelName: string) {
         await this.channel.assignAdminToChannel(username, channelName);
     }
     
     
     @Post('removeAdminToChannel')
     @UseGuards(JwtAuth)
-    async   removeAdminFromChannel(@Req() req : Request & {user : UserDto}, @Body('username') username : string, @Body('channelName') channelName: string, @Res() res: Response) {
+    async   removeAdminFromChannel(@Req() req : Request & {user : UserDto}, @Body('username') username : string, @Body('channelName') channelName: string) {
         let channel : channelDto = await this.channel.getChannelByName(channelName)
         let userTmp : UserDto = await this.user.getUserByUsername(username)
         if (userTmp && channel && channel.admins.includes(req.user.id)) {
@@ -139,7 +142,7 @@ export class ChatController {
 
     @UseGuards(JwtAuth)
     @Post('addPasswordToChannel')
-    async addPasswordToChannel(@Body() channleData : channelDto, @Req() req: Request & {user : UserDto}, @Res() res: Response) {
+    async addPasswordToChannel(@Body() channleData : channelDto, @Req() req: Request & {user : UserDto}) {
             let channel : channelDto = await this.channel.getChannelByName(channleData.name)
             if (channel && channel.owner == req.user.id) {
                 await this.channel.setPasswordToChannel(channel.password, channleData.name)

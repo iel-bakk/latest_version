@@ -22,7 +22,7 @@ let ChannelsService = class ChannelsService {
         let check = await this.getChannelByName(channelData.name);
         let tmpUser = await this.prisma.user.findUnique({ where: { id: id } });
         if (check || !tmpUser)
-            return null;
+            return `couldn't creat channel`;
         console.log(channelData);
         let channel = await this.prisma.channel.create({ data: {
                 name: channelData.name,
@@ -48,7 +48,7 @@ let ChannelsService = class ChannelsService {
             let userChannels = [];
             if (user && channel && !tmp.includes(userId) && !channel.bannedUsers.includes(userId)) {
                 if (channel.IsProtected && channel.password != _channel.password)
-                    return;
+                    return `invalid request .`;
                 tmp = channel.users;
                 userChannels = user.channels;
                 userChannels.push(_channel.id);
@@ -57,7 +57,7 @@ let ChannelsService = class ChannelsService {
                     where: { id: userId },
                     data: { channels: userChannels },
                 });
-                await this.prisma.channel.update({
+                return await this.prisma.channel.update({
                     where: { id: _channel.id },
                     data: { users: tmp },
                 });
@@ -65,6 +65,7 @@ let ChannelsService = class ChannelsService {
         }
         catch (error) {
             console.log(`no such user or channel`);
+            return 'error';
         }
     }
     async removeUserFromChannel(userId, channelId) {
@@ -106,7 +107,7 @@ let ChannelsService = class ChannelsService {
                 where: { id: userId },
                 data: { channels: tmpUser },
             });
-            await this.prisma.channel.update({
+            return await this.prisma.channel.update({
                 where: { id: channelId },
                 data: { users: tmpChannel },
             });
@@ -122,7 +123,7 @@ let ChannelsService = class ChannelsService {
             await this.removeUserFromChannel(user.id, channel.id);
             Ban.push(user.id);
             console.log(Ban);
-            await this.prisma.channel.update({
+            return await this.prisma.channel.update({
                 where: { id: channel.id },
                 data: { bannedUsers: Ban }
             });
@@ -132,6 +133,7 @@ let ChannelsService = class ChannelsService {
         let user = await this.prisma.user.findFirst({ where: { username: username } });
         let channel = await this.prisma.channel.findUnique({ where: { name: channelName } });
         let tmp = [];
+        let _return;
         if (user && channel) {
             if (channel.bannedUsers.includes(user.id)) {
                 for (let index = 0; index < channel.bannedUsers.length; index++) {
@@ -139,10 +141,11 @@ let ChannelsService = class ChannelsService {
                         tmp.push(channel.bannedUsers[index]);
                 }
                 console.log(tmp);
-                await this.prisma.channel.update({ where: { id: channel.id },
+                _return = await this.prisma.channel.update({ where: { id: channel.id },
                     data: { bannedUsers: tmp } });
             }
             await this.addUserToChannel(user.id, channel);
+            return _return;
         }
     }
     async getChannelByName(channelName) {
@@ -154,7 +157,7 @@ let ChannelsService = class ChannelsService {
         if (user && channel && channel.users.includes(user.id) && !channel.admins.includes(user.id)) {
             console.log('ghehehe');
             channel.admins.push(user.id);
-            await this.prisma.channel.update({ where: { id: channel.id },
+            return await this.prisma.channel.update({ where: { id: channel.id },
                 data: {
                     admins: channel.admins,
                 } });
@@ -170,7 +173,7 @@ let ChannelsService = class ChannelsService {
                     if (user.id != channel.admins[index])
                         tmp.push(channel.admins[index]);
                 }
-                await this.prisma.channel.update({ where: { id: channel.id },
+                return await this.prisma.channel.update({ where: { id: channel.id },
                     data: { admins: tmp } });
             }
         }
@@ -181,7 +184,7 @@ let ChannelsService = class ChannelsService {
     async setPasswordToChannel(password, channelName) {
         let channel = await this.getChannelByName(channelName);
         if (channel) {
-            await this.prisma.channel.update({ where: { id: channel.id },
+            return await this.prisma.channel.update({ where: { id: channel.id },
                 data: {
                     IsProtected: true,
                     password: password,

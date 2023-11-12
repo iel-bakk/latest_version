@@ -4,13 +4,23 @@ export declare class ChannelsService {
     private prisma;
     constructor(prisma: PrismaService);
     createChannel(channelData: channelDto, id: string): Promise<any>;
-    addUserToChannel(userId: string, _channel: channelDto): Promise<void>;
-    removeUserFromChannel(userId: string, channelId: string): Promise<void>;
-    banUserFromChannel(username: string, channelName: string): Promise<void>;
-    unBanUserFromChannel(username: string, channelName: string): Promise<void>;
+    addUserToChannel(userId: string, _channel: channelDto): Promise<any>;
+    removeUserFromChannel(userId: string, channelId: string): Promise<any>;
+    banUserFromChannel(username: string, channelName: string): Promise<any>;
+    unBanUserFromChannel(username: string, channelName: string): Promise<any>;
     getChannelByName(channelName: string): Promise<channelDto>;
-    assignAdminToChannel(userName: string, channelName: string): Promise<void>;
-    removeAdminPrivilageToUser(username: string, channelName: string): Promise<void>;
-    deleteChannel(channelId: string): Promise<void>;
-    setPasswordToChannel(password: string, channelName: string): Promise<void>;
+    assignAdminToChannel(userName: string, channelName: string): Promise<any>;
+    removeAdminPrivilageToUser(username: string, channelName: string): Promise<any>;
+    deleteChannel(channelId: string): Promise<any>;
+    setPasswordToChannel(password: string, channelName: string): Promise<{
+        id: string;
+        name: string;
+        users: string[];
+        admins: string[];
+        bannedUsers: string[];
+        owner: string;
+        IsPrivate: boolean;
+        IsProtected: boolean;
+        password: string;
+    }>;
 }
