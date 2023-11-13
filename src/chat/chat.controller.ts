@@ -11,8 +11,6 @@ import { ChannelsService } from "./chat.service";
 import { channelDto } from "src/DTOs/channel/channel.dto";
 import { Request } from "express";
 import { channelMessageDto } from "src/DTOs/channel/channel.messages.dto";
-import { User } from "@prisma/client";
-import { PassThrough } from "stream";
 
 @Controller('Chat')
 export class ChatController {
@@ -62,6 +60,33 @@ export class ChatController {
             console.log(test);
             return 'channel created succefuly'
     }
+
+
+    @Post('BanUser')
+    @UseGuards(JwtAuth)
+    async   BanUser(@Req() req: Request & {user : UserDto} , @Body('username') username: string) : Promise<string> {
+        let userToBan : UserDto = await this.user.getUserByUsername(username)
+        let requester : UserDto = await this.user.getUserById(req.user.id)
+        if (userToBan && requester && !requester.bandUsers.includes(userToBan.id)) {
+            return await this.channel.BanUser(req.user, userToBan)
+        }
+        else
+            return `user dosen't exist in database .`
+    }
+    
+    @Post('unBanUser')
+    @UseGuards(JwtAuth)
+    async   unBanUser(@Req() req: Request & {user : UserDto} , @Body('username') username: string) : Promise<string> {
+        let userTounBan : UserDto = await this.user.getUserByUsername(username)
+        let requester : UserDto = await this.user.getUserById(req.user.id)
+        if (userTounBan && requester && requester.bandUsers.includes(userTounBan.id)) {
+            return await this.channel.unBanUser(req.user, userTounBan)
+        }
+        else
+            return `user dosen't exist in database .`
+    }
+
+
 
     @Post('ChannelAddUser')
     @UseGuards(JwtAuth)

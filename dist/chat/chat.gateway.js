@@ -103,6 +103,10 @@ let ChatGateway = class ChatGateway {
                 console.log("invalid data : Wrong sender or reciever info.");
                 return;
             }
+            if (reciever.bandUsers.includes(sender.id)) {
+                console.log("a banned user can't send messages .");
+                return;
+            }
             let achievementCheck = await this.conversation.numberOfConversations(sender.id);
             if (achievementCheck > 0) {
                 if (!sender.achievements.includes('send your first message')) {

@@ -91,12 +91,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
       @SubscribeMessage('SendMessage')
         async hanldeMessage(@MessageBody() message: messageDto) {
           try {
-
-            //check if the sender is a valid user
             const sender = await this.user.getUserById(message.senderId);
             const reciever = await this.user.getUserById(message.recieverId);
             if (!sender || !reciever) {
               console.log("invalid data : Wrong sender or reciever info.")
+              return ;
+            }
+            if (reciever.bandUsers.includes(sender.id)) {
+              console.log("a banned user can't send messages .");
               return ;
             }
             let achievementCheck : number = await this.conversation.numberOfConversations(sender.id)

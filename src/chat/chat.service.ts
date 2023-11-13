@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { use } from 'passport';
 import { UserDto } from 'src/DTOs/User/user.dto';
 import { channelDto } from 'src/DTOs/channel/channel.dto';
 import { channelMessageDto } from 'src/DTOs/channel/channel.messages.dto';
@@ -217,7 +218,36 @@ export class ChannelsService {
       }})
     }
  }
-
+ async BanUser(user: UserDto, ban : UserDto): Promise<string> {
+    let tmp : string[] = []
+    if (user && ban) {
+      tmp = user.bandUsers;
+      tmp.push(ban.id)
+      
+      let check = await this.prisma.user.update({where : {id : user.id}, 
+        data : {bandUsers : tmp},
+      })
+      console.log(check);
+      return `user banned succesfully.`
+    }
+    return `user already banned or dosen't exist.`
+}
+ 
+async unBanUser(user: UserDto, ban : UserDto): Promise<string> {
+    let tmp : string[] = []
+    if (user && ban) {
+      user.bandUsers.forEach((user) => {
+        if (user != ban.id)
+          tmp.push(user)
+      })
+      let check = await this.prisma.user.update({where : {id : user.id}, 
+        data : {bandUsers : tmp},
+      })
+      console.log(check);
+      return `user unbanned succesfully.`
+    }
+    return `user is not in the ban list.`
+}
 
  async getChannelMessages(channel : string) : Promise<channelMessageDto[]> {
   return await this.prisma.channelMessage.findMany({where : {channelName : channel}})

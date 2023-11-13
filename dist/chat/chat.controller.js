@@ -62,6 +62,24 @@ let ChatController = class ChatController {
         console.log(test);
         return 'channel created succefuly';
     }
+    async BanUser(req, username) {
+        let userToBan = await this.user.getUserByUsername(username);
+        let requester = await this.user.getUserById(req.user.id);
+        if (userToBan && requester && !requester.bandUsers.includes(userToBan.id)) {
+            return await this.channel.BanUser(req.user, userToBan);
+        }
+        else
+            return `user dosen't exist in database .`;
+    }
+    async unBanUser(req, username) {
+        let userTounBan = await this.user.getUserByUsername(username);
+        let requester = await this.user.getUserById(req.user.id);
+        if (userTounBan && requester && requester.bandUsers.includes(userTounBan.id)) {
+            return await this.channel.unBanUser(req.user, userTounBan);
+        }
+        else
+            return `user dosen't exist in database .`;
+    }
     async addUserToChannel(channelName, username, req) {
         let channel = await this.channel.getChannelByName(channelName.name);
         let tmpUser = await this.user.getUserByUsername(username);
@@ -171,6 +189,24 @@ __decorate([
     __metadata("design:paramtypes", [channel_dto_1.channelDto, Object]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "createChannel", null);
+__decorate([
+    (0, common_1.Post)('BanUser'),
+    (0, common_1.UseGuards)(jwt_guard_1.JwtAuth),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)('username')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], ChatController.prototype, "BanUser", null);
+__decorate([
+    (0, common_1.Post)('unBanUser'),
+    (0, common_1.UseGuards)(jwt_guard_1.JwtAuth),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)('username')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], ChatController.prototype, "unBanUser", null);
 __decorate([
     (0, common_1.Post)('ChannelAddUser'),
     (0, common_1.UseGuards)(jwt_guard_1.JwtAuth),

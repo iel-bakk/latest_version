@@ -7,4 +7,5 @@ export declare class UserDto {
     TwoFASecret: string;
     IsEnabled: boolean;
     channels: string[];
+    bandUsers: string[];
 }

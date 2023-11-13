@@ -25,6 +25,12 @@ export declare class ChatController {
     createChannel(channelData: channelDto, req: Request & {
         user: UserDto;
     }): Promise<any>;
+    BanUser(req: Request & {
+        user: UserDto;
+    }, username: string): Promise<string>;
+    unBanUser(req: Request & {
+        user: UserDto;
+    }, username: string): Promise<string>;
     addUserToChannel(channelName: channelDto, username: string, req: Request & {
         user: UserDto;
     }): Promise<void>;

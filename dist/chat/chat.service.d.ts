@@ -1,3 +1,4 @@
+import { UserDto } from 'src/DTOs/User/user.dto';
 import { channelDto } from 'src/DTOs/channel/channel.dto';
 import { channelMessageDto } from 'src/DTOs/channel/channel.messages.dto';
 import { PrismaService } from 'src/modules/database/prisma.service';
@@ -25,5 +26,7 @@ export declare class ChannelsService {
         IsProtected: boolean;
         password: string;
     }>;
+    BanUser(user: UserDto, ban: UserDto): Promise<string>;
+    unBanUser(user: UserDto, ban: UserDto): Promise<string>;
     getChannelMessages(channel: string): Promise<channelMessageDto[]>;
 }

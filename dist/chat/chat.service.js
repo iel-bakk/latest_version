@@ -205,6 +205,34 @@ let ChannelsService = class ChannelsService {
                 } });
         }
     }
+    async BanUser(user, ban) {
+        let tmp = [];
+        if (user && ban) {
+            tmp = user.bandUsers;
+            tmp.push(ban.id);
+            let check = await this.prisma.user.update({ where: { id: user.id },
+                data: { bandUsers: tmp },
+            });
+            console.log(check);
+            return `user banned succesfully.`;
+        }
+        return `user already banned or dosen't exist.`;
+    }
+    async unBanUser(user, ban) {
+        let tmp = [];
+        if (user && ban) {
+            user.bandUsers.forEach((user) => {
+                if (user != ban.id)
+                    tmp.push(user);
+            });
+            let check = await this.prisma.user.update({ where: { id: user.id },
+                data: { bandUsers: tmp },
+            });
+            console.log(check);
+            return `user unbanned succesfully.`;
+        }
+        return `user is not in the ban list.`;
+    }
     async getChannelMessages(channel) {
         return await this.prisma.channelMessage.findMany({ where: { channelName: channel } });
     }
