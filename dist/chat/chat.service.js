@@ -65,7 +65,7 @@ let ChannelsService = class ChannelsService {
                     return `invalid request .`;
                 tmp = channel.users;
                 userChannels = user.channels;
-                userChannels.push(_channel.id);
+                userChannels.push(_channel.name);
                 tmp.push(userId);
                 await this.prisma.user.update({
                     where: { id: userId },
@@ -204,6 +204,9 @@ let ChannelsService = class ChannelsService {
                     password: password,
                 } });
         }
+    }
+    async getChannelMessages(channel) {
+        return await this.prisma.channelMessage.findMany({ where: { channelName: channel } });
     }
 };
 exports.ChannelsService = ChannelsService;

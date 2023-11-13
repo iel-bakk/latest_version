@@ -31,9 +31,16 @@ let ChatController = class ChatController {
         this.friend = friend;
         this.channel = channel;
     }
-    async check() {
-        let tmp = await this.conversation.numberOfConversations('98861');
-        console.log(tmp);
+    async getUserMessages(req) {
+        let _user = await this.user.getUserById(req.user.id);
+        if (_user) {
+            _user.channels.map(async (_channel) => {
+                let tmp = await this.channel.getChannelByName(_channel);
+                if (tmp)
+                    return tmp.name;
+            });
+            return _user.channels;
+        }
     }
     async SendInvitation(invitation, req) {
         if (req.user.id != invitation.invitationSenderId || req.user.id == invitation.invitationRecieverId)
@@ -44,6 +51,7 @@ let ChatController = class ChatController {
         return tmp;
     }
     async createChannel(channelData, req) {
+        console.log(channelData);
         if ((channelData.IsPrivate && channelData.IsProtected) || (channelData.IsPrivate && channelData.password.length))
             return `can't have private channel with password.`;
         if (channelData.IsProtected && channelData.password.length == 0)
@@ -129,14 +137,22 @@ let ChatController = class ChatController {
             await this.channel.setPasswordToChannel(channel.password, channleData.name);
         }
     }
+    async getChannelMessages(channelName) {
+        let check_channel = await this.channel.getChannelByName(channelName);
+        if (check_channel)
+            return await this.channel.getChannelMessages(channelName);
+        return null;
+    }
 };
 exports.ChatController = ChatController;
 __decorate([
     (0, common_1.Get)(),
+    (0, common_1.UseGuards)(jwt_guard_1.JwtAuth),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], ChatController.prototype, "check", null);
+], ChatController.prototype, "getUserMessages", null);
 __decorate([
     (0, common_1.Post)('invite'),
     (0, common_1.UseGuards)(jwt_guard_1.JwtAuth),
@@ -233,8 +249,19 @@ __decorate([
     __metadata("design:paramtypes", [channel_dto_1.channelDto, Object]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "addPasswordToChannel", null);
+__decorate([
+    (0, common_1.Post)('getChannelMessages'),
+    __param(0, (0, common_1.Body)('channelName')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], ChatController.prototype, "getChannelMessages", null);
 exports.ChatController = ChatController = __decorate([
     (0, common_1.Controller)('Chat'),
-    __metadata("design:paramtypes", [conversation_repository_1.converationRepositroy, users_repository_1.UsersRepository, invites_repository_1.InvitesRepository, friends_repository_1.FriendsRepository, chat_service_1.ChannelsService])
+    __metadata("design:paramtypes", [conversation_repository_1.converationRepositroy,
+        users_repository_1.UsersRepository,
+        invites_repository_1.InvitesRepository,
+        friends_repository_1.FriendsRepository,
+        chat_service_1.ChannelsService])
 ], ChatController);
 //# sourceMappingURL=chat.controller.js.map

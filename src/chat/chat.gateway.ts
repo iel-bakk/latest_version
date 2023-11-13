@@ -54,8 +54,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
 
       handleDisconnect(client: Socket) {
             this.clientsMap.delete(client.id); // Remove the client from the map when disconnected
-        }
-
+      }
 
       @SubscribeMessage('channelMessage')
       async handleChannelMessage(@MessageBody() message: channelMessageDto) {
@@ -66,7 +65,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
           if (_user && channel && channel.users.includes(_user.id))  {
             channel.users.forEach((user) => {
               console.log('user :', user );
-              
               if (user != message.sender && channel.users.includes(user)) {
                 console.log('reciever : ',user);
                 let socket: Socket = this.clientsMap.get(user)
@@ -89,7 +87,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
           console.log('error while sending channel message .');
         }
       }
-      
+
       @SubscribeMessage('SendMessage')
         async hanldeMessage(@MessageBody() message: messageDto) {
           try {

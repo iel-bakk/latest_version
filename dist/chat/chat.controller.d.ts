@@ -7,6 +7,8 @@ import { InvitesRepository } from "src/modules/invites/invites.repository";
 import { UsersRepository } from "src/modules/users/users.repository";
 import { ChannelsService } from "./chat.service";
 import { channelDto } from "src/DTOs/channel/channel.dto";
+import { Request } from "express";
+import { channelMessageDto } from "src/DTOs/channel/channel.messages.dto";
 export declare class ChatController {
     private conversation;
     private user;
@@ -14,7 +16,9 @@ export declare class ChatController {
     private friend;
     private channel;
     constructor(conversation: converationRepositroy, user: UsersRepository, invite: InvitesRepository, friend: FriendsRepository, channel: ChannelsService);
-    check(): Promise<void>;
+    getUserMessages(req: Request & {
+        user: UserDto;
+    }): Promise<any>;
     SendInvitation(invitation: InviteDto, req: Request & {
         user: UserDto;
     }): Promise<InviteDto | string>;
@@ -45,4 +49,5 @@ export declare class ChatController {
     addPasswordToChannel(channleData: channelDto, req: Request & {
         user: UserDto;
     }): Promise<void>;
+    getChannelMessages(channelName: string): Promise<channelMessageDto[] | null>;
 }

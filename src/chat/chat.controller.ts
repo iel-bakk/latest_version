@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Post, Put, Req, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Post, Put, Req, UseGuards } from "@nestjs/common";
 import { UserDto } from "src/DTOs/User/user.dto";
 import { FriendDto } from "src/DTOs/friends/friend.dto";
 import { InviteDto } from "src/DTOs/invitation/invite.dto";
@@ -9,15 +9,31 @@ import { InvitesRepository } from "src/modules/invites/invites.repository";
 import { UsersRepository } from "src/modules/users/users.repository";
 import { ChannelsService } from "./chat.service";
 import { channelDto } from "src/DTOs/channel/channel.dto";
-import { Response } from "express";
+import { Request } from "express";
+import { channelMessageDto } from "src/DTOs/channel/channel.messages.dto";
+import { User } from "@prisma/client";
+import { PassThrough } from "stream";
 
 @Controller('Chat')
 export class ChatController {
-    constructor (private conversation: converationRepositroy, private user : UsersRepository, private invite : InvitesRepository, private friend: FriendsRepository, private channel : ChannelsService) {}
+    constructor (private conversation: converationRepositroy
+                , private user : UsersRepository
+                , private invite : InvitesRepository
+                , private friend: FriendsRepository
+                , private channel : ChannelsService) {}
+
     @Get()
-    async check() {
-        let tmp = await this.conversation.numberOfConversations('98861')
-        console.log(tmp);
+    @UseGuards(JwtAuth)
+    async getUserMessages(@Req() req: Request & {user : UserDto}) :Promise<any> {
+        let _user : UserDto = await this.user.getUserById(req.user.id)
+        if (_user) {
+            _user.channels.map(async (_channel) => {
+                let tmp : channelDto = await this.channel.getChannelByName(_channel)
+                if (tmp)
+                    return tmp.name
+            })
+            return _user.channels
+        }
     }
 
     @Post('invite')
@@ -34,6 +50,7 @@ export class ChatController {
     @Post('createChannel')
     @UseGuards(JwtAuth)
     async createChannel(@Body() channelData : channelDto, @Req() req: Request & {user : UserDto}) : Promise<any> {
+            console.log(channelData);
             if ((channelData.IsPrivate && channelData.IsProtected) || (channelData.IsPrivate && channelData.password.length))
                 return `can't have private channel with password.`
             if (channelData.IsProtected && channelData.password.length == 0)
@@ -147,6 +164,15 @@ export class ChatController {
             if (channel && channel.owner == req.user.id) {
                 await this.channel.setPasswordToChannel(channel.password, channleData.name)
             }
+    }
+
+
+    @Post('getChannelMessages')
+    async   getChannelMessages(@Body('channelName') channelName : string) : Promise<channelMessageDto[] | null>{
+        let check_channel : channelDto = await this.channel.getChannelByName(channelName)
+        if (check_channel)
+            return await this.channel.getChannelMessages(channelName)
+        return null
     }
 
 }

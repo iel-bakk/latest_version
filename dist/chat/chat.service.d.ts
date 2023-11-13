@@ -25,4 +25,5 @@ export declare class ChannelsService {
         IsProtected: boolean;
         password: string;
     }>;
+    getChannelMessages(channel: string): Promise<channelMessageDto[]>;
 }
