@@ -46,6 +46,7 @@ let ChannelsService = class ChannelsService {
     }
     async createChannelMessage(message) {
         if (message) {
+            console.log('creating channel message');
             return this.prisma.channelMessage.create({ data: {
                     sender: message.sender,
                     content: message.content,

@@ -60,22 +60,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
       @SubscribeMessage('channelMessage')
       async handleChannelMessage(@MessageBody() message: channelMessageDto) {
         try {
-          let _user : UserDto = await this.user.getUserByUsername(message.sender)
+          console.log('got here ff : ',message.sender);
+          let _user : UserDto = await this.user.getUserById(message.sender)
           let channel : channelDto = await this.channel.getChannelByName(message.channelName)
           if (_user && channel && channel.users.includes(_user.id))  {
-            // console.log(' channel : ', channel);
-            console.log(message.sender);
-            // console.log(_user.id);
-            // console.log(channel.users.includes(_user.id));
-              channel.users.forEach((user) => {
-                let socket: Socket = this.clientsMap.get(_user.id)
-                if (socket && user != _user.id && channel.users.includes(user)) {
-                  console.log('reciever : ',user);
-                  socket.emit('channelMessage', message);
-                }
-              })
-              // await this.channel.createChannelMessage(message)
+            channel.users.forEach((user) => {
+              console.log('user :', user );
               
+              if (user != message.sender && channel.users.includes(user)) {
+                console.log('reciever : ',user);
+                let socket: Socket = this.clientsMap.get(user)
+                if (socket)
+                  socket.emit('channelMessage', message);
+              }
+            })
+            await this.channel.createChannelMessage(message)
             }
             else {
               let socket: Socket = this.clientsMap.get(_user.id)

@@ -68,17 +68,20 @@ let ChatGateway = class ChatGateway {
     }
     async handleChannelMessage(message) {
         try {
-            let _user = await this.user.getUserByUsername(message.sender);
+            console.log('got here ff : ', message.sender);
+            let _user = await this.user.getUserById(message.sender);
             let channel = await this.channel.getChannelByName(message.channelName);
             if (_user && channel && channel.users.includes(_user.id)) {
-                console.log(message.sender);
                 channel.users.forEach((user) => {
-                    let socket = this.clientsMap.get(_user.id);
-                    if (socket && user != _user.id && channel.users.includes(user)) {
+                    console.log('user :', user);
+                    if (user != message.sender && channel.users.includes(user)) {
                         console.log('reciever : ', user);
-                        socket.emit('channelMessage', message);
+                        let socket = this.clientsMap.get(user);
+                        if (socket)
+                            socket.emit('channelMessage', message);
                     }
                 });
+                await this.channel.createChannelMessage(message);
             }
             else {
                 let socket = this.clientsMap.get(_user.id);
