@@ -55,5 +55,8 @@ export declare class ChatController {
     addPasswordToChannel(channleData: channelDto, req: Request & {
         user: UserDto;
     }): Promise<void>;
+    removePasswordToChannel(channelName: string, req: Request & {
+        user: UserDto;
+    }): Promise<void>;
     getChannelMessages(channelName: string): Promise<channelMessageDto[] | null>;
 }

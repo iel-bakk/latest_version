@@ -171,8 +171,8 @@ export class ChannelsService {
  async getChannelByName(channelName: string) : Promise<channelDto> {
     return await this.prisma.channel.findFirst({where : {name : channelName}});
  }
- async assignAdminToChannel(userName: string, channelName: string) : Promise<any> {
-    const user = await this.prisma.user.findFirst({ where: { username: userName } });
+ async assignAdminToChannel(user: UserDto, channelName: string) : Promise<any> {
+    // const user = await this.prisma.user.findFirst({ where: { username: userName } });
     const channel = await this.prisma.channel.findUnique({ where: { name: channelName } });
     if (user && channel && channel.users.includes(user.id) && !channel.admins.includes(user.id)) {
       console.log('ghehehe');
@@ -209,8 +209,10 @@ export class ChannelsService {
  
  
  async setPasswordToChannel(password: string, channelName : string) {
+  console.log('testing', password);
+  
     let channel : channelDto = await this.getChannelByName(channelName)
-    if (channel) {
+    if (channel && password.length) {
       return await this.prisma.channel.update({where : {id: channel.id},
       data : {
         IsProtected : true,
@@ -218,6 +220,18 @@ export class ChannelsService {
       }})
     }
  }
+ 
+ async unsetPasswordToChannel(channelName : string) {
+    let channel : channelDto = await this.getChannelByName(channelName)
+    if (channel) {
+      return await this.prisma.channel.update({where : {id: channel.id},
+      data : {
+        IsProtected : false,
+        password : '',
+      }})
+    }
+ }
+ 
  async BanUser(user: UserDto, ban : UserDto): Promise<string> {
     let tmp : string[] = []
     if (user && ban) {
@@ -250,6 +264,9 @@ async unBanUser(user: UserDto, ban : UserDto): Promise<string> {
 }
 
  async getChannelMessages(channel : string) : Promise<channelMessageDto[]> {
-  return await this.prisma.channelMessage.findMany({where : {channelName : channel}})
+  console.log('getting messages of : ',channel);
+  
+  let tmp =  await this.prisma.channelMessage.findMany({where : {channelName : channel}})
+  return tmp
  }
  }

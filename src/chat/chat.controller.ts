@@ -11,6 +11,7 @@ import { ChannelsService } from "./chat.service";
 import { channelDto } from "src/DTOs/channel/channel.dto";
 import { Request } from "express";
 import { channelMessageDto } from "src/DTOs/channel/channel.messages.dto";
+import { User } from "@prisma/client";
 
 @Controller('Chat')
 export class ChatController {
@@ -165,7 +166,9 @@ export class ChatController {
     @Post('addAdminToChannel')
     @UseGuards(JwtAuth)
     async   addAdminToChannel(@Req() req : Request & {user : UserDto}, @Body('username') username : string, @Body('channelName') channelName: string) {
-        await this.channel.assignAdminToChannel(username, channelName);
+        let _user : UserDto = await this.user.getUserByUsername(username)
+        if (_user)
+            await this.channel.assignAdminToChannel(_user, channelName);
     }
     
     
@@ -187,8 +190,17 @@ export class ChatController {
     async addPasswordToChannel(@Body() channleData : channelDto, @Req() req: Request & {user : UserDto}) {
             let channel : channelDto = await this.channel.getChannelByName(channleData.name)
             if (channel && channel.owner == req.user.id) {
-                await this.channel.setPasswordToChannel(channel.password, channleData.name)
+                await this.channel.setPasswordToChannel(channleData.password, channleData.name)
             }
+    }
+    
+    @UseGuards(JwtAuth)
+    @Post('removePasswordToChannel')
+    async removePasswordToChannel(@Body('channelName') channelName : string , @Req() req: Request & {user : UserDto}) {
+        let channel : channelDto = await this.channel.getChannelByName(channelName)
+        if (channel && channel.owner == req.user.id) {
+            await this.channel.unsetPasswordToChannel(channelName)
+        }
     }
 
 
@@ -199,5 +211,4 @@ export class ChatController {
             return await this.channel.getChannelMessages(channelName)
         return null
     }
-
 }

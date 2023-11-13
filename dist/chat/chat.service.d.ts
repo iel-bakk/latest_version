@@ -12,10 +12,21 @@ export declare class ChannelsService {
     banUserFromChannel(username: string, channelName: string): Promise<any>;
     unBanUserFromChannel(username: string, channelName: string): Promise<any>;
     getChannelByName(channelName: string): Promise<channelDto>;
-    assignAdminToChannel(userName: string, channelName: string): Promise<any>;
+    assignAdminToChannel(user: UserDto, channelName: string): Promise<any>;
     removeAdminPrivilageToUser(username: string, channelName: string): Promise<any>;
     deleteChannel(channelId: string): Promise<any>;
     setPasswordToChannel(password: string, channelName: string): Promise<{
+        id: string;
+        name: string;
+        users: string[];
+        admins: string[];
+        bannedUsers: string[];
+        owner: string;
+        IsPrivate: boolean;
+        IsProtected: boolean;
+        password: string;
+    }>;
+    unsetPasswordToChannel(channelName: string): Promise<{
         id: string;
         name: string;
         users: string[];

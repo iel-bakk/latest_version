@@ -165,8 +165,7 @@ let ChannelsService = class ChannelsService {
     async getChannelByName(channelName) {
         return await this.prisma.channel.findFirst({ where: { name: channelName } });
     }
-    async assignAdminToChannel(userName, channelName) {
-        const user = await this.prisma.user.findFirst({ where: { username: userName } });
+    async assignAdminToChannel(user, channelName) {
         const channel = await this.prisma.channel.findUnique({ where: { name: channelName } });
         if (user && channel && channel.users.includes(user.id) && !channel.admins.includes(user.id)) {
             console.log('ghehehe');
@@ -196,12 +195,23 @@ let ChannelsService = class ChannelsService {
         await this.prisma.channel.delete({ where: { id: channelId } });
     }
     async setPasswordToChannel(password, channelName) {
+        console.log('testing', password);
         let channel = await this.getChannelByName(channelName);
-        if (channel) {
+        if (channel && password.length) {
             return await this.prisma.channel.update({ where: { id: channel.id },
                 data: {
                     IsProtected: true,
                     password: password,
+                } });
+        }
+    }
+    async unsetPasswordToChannel(channelName) {
+        let channel = await this.getChannelByName(channelName);
+        if (channel) {
+            return await this.prisma.channel.update({ where: { id: channel.id },
+                data: {
+                    IsProtected: false,
+                    password: '',
                 } });
         }
     }
@@ -234,7 +244,9 @@ let ChannelsService = class ChannelsService {
         return `user is not in the ban list.`;
     }
     async getChannelMessages(channel) {
-        return await this.prisma.channelMessage.findMany({ where: { channelName: channel } });
+        console.log('getting messages of : ', channel);
+        let tmp = await this.prisma.channelMessage.findMany({ where: { channelName: channel } });
+        return tmp;
     }
 };
 exports.ChannelsService = ChannelsService;

@@ -137,7 +137,9 @@ let ChatController = class ChatController {
         return this.friend.createFriend(new friend_dto_1.FriendDto(invite.invitationRecieverId, invite.invitationSenderId, ''), req.user.id);
     }
     async addAdminToChannel(req, username, channelName) {
-        await this.channel.assignAdminToChannel(username, channelName);
+        let _user = await this.user.getUserByUsername(username);
+        if (_user)
+            await this.channel.assignAdminToChannel(_user, channelName);
     }
     async removeAdminFromChannel(req, username, channelName) {
         let channel = await this.channel.getChannelByName(channelName);
@@ -152,7 +154,13 @@ let ChatController = class ChatController {
     async addPasswordToChannel(channleData, req) {
         let channel = await this.channel.getChannelByName(channleData.name);
         if (channel && channel.owner == req.user.id) {
-            await this.channel.setPasswordToChannel(channel.password, channleData.name);
+            await this.channel.setPasswordToChannel(channleData.password, channleData.name);
+        }
+    }
+    async removePasswordToChannel(channelName, req) {
+        let channel = await this.channel.getChannelByName(channelName);
+        if (channel && channel.owner == req.user.id) {
+            await this.channel.unsetPasswordToChannel(channelName);
         }
     }
     async getChannelMessages(channelName) {
@@ -285,6 +293,15 @@ __decorate([
     __metadata("design:paramtypes", [channel_dto_1.channelDto, Object]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "addPasswordToChannel", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_guard_1.JwtAuth),
+    (0, common_1.Post)('removePasswordToChannel'),
+    __param(0, (0, common_1.Body)('channelName')),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], ChatController.prototype, "removePasswordToChannel", null);
 __decorate([
     (0, common_1.Post)('getChannelMessages'),
     __param(0, (0, common_1.Body)('channelName')),
