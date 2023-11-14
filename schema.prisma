@@ -37,10 +37,10 @@ model Channel {
   users                 String[]
   admins                String[]
   bannedUsers           String[]
-  owner                 String
-  IsPrivate             Boolean @default(false)
-  IsProtected           Boolean @default(false)
-  password              String
+  owner                 String ?
+  IsPrivate             Boolean ? @default(false)
+  IsProtected           Boolean ? @default(false)
+  password              String ?
 }
 
 model Friend {

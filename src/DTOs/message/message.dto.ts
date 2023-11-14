@@ -12,7 +12,7 @@ export class messageDto {
 
     @IsString()
     senderId        :       string
-
+    
     @IsString()
     recieverId      :       string
 }

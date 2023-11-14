@@ -9,6 +9,7 @@ import { ChannelsService } from "./chat.service";
 import { channelDto } from "src/DTOs/channel/channel.dto";
 import { Request } from "express";
 import { channelMessageDto } from "src/DTOs/channel/channel.messages.dto";
+import { channelParams } from "src/DTOs/channel/channel.params.dto";
 export declare class ChatController {
     private conversation;
     private user;
@@ -36,27 +37,29 @@ export declare class ChatController {
     }): Promise<void>;
     removeUserFromChannel(req: Request & {
         user: UserDto;
-    }, username: string, channelName: string): Promise<void>;
+    }, data: channelParams): Promise<void>;
     banUserFromChannel(req: Request & {
         user: UserDto;
-    }, username: string, channelName: string): Promise<void>;
+    }, data: channelParams): Promise<void>;
     unBanUserFromChannel(req: Request & {
         user: UserDto;
-    }, username: string, channelName: string): Promise<void>;
+    }, data: channelParams): Promise<void>;
     accepteInvite(req: Request & {
         user: UserDto;
     }, invite: InviteDto): Promise<FriendDto | string>;
     addAdminToChannel(req: Request & {
         user: UserDto;
-    }, username: string, channelName: string): Promise<void>;
+    }, data: channelParams): Promise<void>;
     removeAdminFromChannel(req: Request & {
         user: UserDto;
-    }, username: string, channelName: string): Promise<void>;
+    }, data: channelParams): Promise<void>;
     addPasswordToChannel(channleData: channelDto, req: Request & {
         user: UserDto;
     }): Promise<void>;
-    removePasswordToChannel(channelName: string, req: Request & {
+    removePasswordToChannel(data: channelParams, req: Request & {
         user: UserDto;
     }): Promise<void>;
-    getChannelMessages(channelName: string): Promise<channelMessageDto[] | null>;
+    getChannelMessages(data: channelParams, req: Request & {
+        user: UserDto;
+    }): Promise<channelMessageDto[] | null>;
 }

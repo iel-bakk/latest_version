@@ -29,7 +29,7 @@ export class ChannelsService {
           password : channelData.password
         }})
         
-        tmpUser.channels.push(channel.id);
+        tmpUser.channels.push(channel.name);
         await this.prisma.user.update({
           where: { id: id },
           data: { channels: tmpUser.channels },
