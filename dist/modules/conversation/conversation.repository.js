@@ -35,6 +35,19 @@ let converationRepositroy = class converationRepositroy {
             } });
         return count.length;
     }
+    async getConversations(_id) {
+        let count = await this.Prisma.conversation.findMany({ where: {
+                OR: [
+                    {
+                        senderId: _id,
+                    },
+                    {
+                        recieverId: _id,
+                    }
+                ]
+            } });
+        return count;
+    }
     async findConversations(_recieverId, _senderId) {
         return await this.Prisma.conversation.findFirst({ where: {
                 OR: [

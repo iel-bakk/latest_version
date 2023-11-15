@@ -24,23 +24,59 @@ const users_repository_1 = require("../modules/users/users.repository");
 const chat_service_1 = require("./chat.service");
 const channel_dto_1 = require("../DTOs/channel/channel.dto");
 const channel_params_dto_1 = require("../DTOs/channel/channel.params.dto");
+const conversation_dto_1 = require("../DTOs/chat/conversation.dto");
+const message_repository_1 = require("../modules/message/message.repository");
 let ChatController = class ChatController {
-    constructor(conversation, user, invite, friend, channel) {
+    constructor(conversation, user, invite, friend, channel, message) {
         this.conversation = conversation;
         this.user = user;
         this.invite = invite;
         this.friend = friend;
         this.channel = channel;
+        this.message = message;
     }
     async getUserMessages(req) {
         let _user = await this.user.getUserById(req.user.id);
+        let frontData = [];
+        let conversationsFront = [];
         if (_user) {
-            _user.channels.map(async (_channel) => {
-                let tmp = await this.channel.getChannelByName(_channel);
-                if (tmp)
-                    return tmp.name;
-            });
-            return _user.channels;
+            let conversations = await this.conversation.getConversations(req.user.id);
+            if (conversations) {
+                console.log(conversations);
+                conversations.forEach(async (conv) => {
+                    let sender = await this.user.getUserById(conv.senderId);
+                    let reciever = await this.user.getUserById(conv.recieverId);
+                    if (sender && reciever) {
+                        console.log(`sender =====> `, sender, `reciever =====> `, reciever);
+                        let _mesasges = await this.message.getMessages(conv.id);
+                        console.log('messages ******** ', _mesasges, "fafdfadfadff : ", conv);
+                        let tmp = new conversation_dto_1.conversationToFront;
+                        if (sender.id = req.user.id) {
+                            tmp.username = sender.username;
+                            tmp.avatar = sender.avatar;
+                            if (_mesasges && _mesasges[0] && _mesasges[0].content)
+                                tmp.lastMesasge = _mesasges[0].content;
+                            else
+                                tmp.lastMesasge = '';
+                        }
+                        else {
+                            tmp.username = reciever.username;
+                            tmp.avatar = reciever.avatar;
+                            tmp.lastMesasge = '';
+                            if (_mesasges && _mesasges[0] && _mesasges[0].content)
+                                tmp.lastMesasge = _mesasges[0].content;
+                            else
+                                tmp.lastMesasge = '';
+                        }
+                        console.log(tmp);
+                        conversationsFront.push(tmp);
+                    }
+                });
+                console.log(conversationsFront);
+                conversationsFront.forEach((conv) => {
+                });
+            }
+            return conversationsFront;
         }
     }
     async SendInvitation(invitation, req) {
@@ -313,6 +349,7 @@ exports.ChatController = ChatController = __decorate([
         users_repository_1.UsersRepository,
         invites_repository_1.InvitesRepository,
         friends_repository_1.FriendsRepository,
-        chat_service_1.ChannelsService])
+        chat_service_1.ChannelsService,
+        message_repository_1.messageRepository])
 ], ChatController);
 //# sourceMappingURL=chat.controller.js.map

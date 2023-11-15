@@ -24,6 +24,11 @@ let messageRepository = class messageRepository {
                 content: message.content
             } });
     }
+    async getMessages(_conversationId) {
+        return await this.Primsa.message.findMany({ where: {
+                conversationId: _conversationId
+            } });
+    }
     async DeleteMessage(id) {
         await this.Primsa.message.delete({ where: { id } });
         return "deleted";

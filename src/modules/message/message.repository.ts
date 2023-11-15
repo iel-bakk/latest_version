@@ -16,6 +16,12 @@ export class messageRepository {
         }})
     }
 
+    async getMessages(_conversationId : string) : Promise<messageDto[]> {
+        return await this.Primsa.message.findMany({where : {
+            conversationId : _conversationId
+        }})
+    }
+
     async DeleteMessage(id : string) : Promise<string> {
         await this.Primsa.message.delete({where : {id}});
         return "deleted"

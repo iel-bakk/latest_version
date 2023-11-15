@@ -5,6 +5,7 @@ export declare class converationRepositroy {
     constructor(Prisma: PrismaService);
     createConversation(_recieverId: string, _senderId: string): Promise<ConversationDto>;
     numberOfConversations(_id: string): Promise<number>;
+    getConversations(_id: string): Promise<ConversationDto[]>;
     findConversations(_recieverId: string, _senderId: string): Promise<ConversationDto | null>;
     deleteConversation(conversationData: ConversationDto): Promise<string>;
 }

@@ -10,16 +10,19 @@ import { channelDto } from "src/DTOs/channel/channel.dto";
 import { Request } from "express";
 import { channelMessageDto } from "src/DTOs/channel/channel.messages.dto";
 import { channelParams } from "src/DTOs/channel/channel.params.dto";
+import { conversationToFront } from "src/DTOs/chat/conversation.dto";
+import { messageRepository } from "src/modules/message/message.repository";
 export declare class ChatController {
     private conversation;
     private user;
     private invite;
     private friend;
     private channel;
-    constructor(conversation: converationRepositroy, user: UsersRepository, invite: InvitesRepository, friend: FriendsRepository, channel: ChannelsService);
+    private message;
+    constructor(conversation: converationRepositroy, user: UsersRepository, invite: InvitesRepository, friend: FriendsRepository, channel: ChannelsService, message: messageRepository);
     getUserMessages(req: Request & {
         user: UserDto;
-    }): Promise<any>;
+    }): Promise<conversationToFront[]>;
     SendInvitation(invitation: InviteDto, req: Request & {
         user: UserDto;
     }): Promise<InviteDto | string>;

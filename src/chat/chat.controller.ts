@@ -12,6 +12,12 @@ import { channelDto } from "src/DTOs/channel/channel.dto";
 import { Request } from "express";
 import { channelMessageDto } from "src/DTOs/channel/channel.messages.dto";
 import { channelParams } from "src/DTOs/channel/channel.params.dto";
+import { ConversationDto } from "src/DTOs/conversation/conversation.dto";
+import { chatDto } from "src/DTOs/chat/chat.dto";
+import { conversationToFront } from "src/DTOs/chat/conversation.dto";
+import { messageDto } from "src/DTOs/message/message.dto";
+import { PassThrough } from "stream";
+import { messageRepository } from "src/modules/message/message.repository";
 
 @Controller('Chat')
 export class ChatController {
@@ -19,19 +25,55 @@ export class ChatController {
                 , private user : UsersRepository
                 , private invite : InvitesRepository
                 , private friend: FriendsRepository
-                , private channel : ChannelsService) {}
+                , private channel : ChannelsService
+                , private message: messageRepository) {}
 
     @Get()
     @UseGuards(JwtAuth)
-    async getUserMessages(@Req() req: Request & {user : UserDto}) :Promise<any> {
+    async getUserMessages(@Req() req: Request & {user : UserDto}) :Promise<conversationToFront[]> {
         let _user : UserDto = await this.user.getUserById(req.user.id)
+        let frontData : chatDto[] = [];
+        let conversationsFront : conversationToFront[] = [];
         if (_user) {
-            _user.channels.map(async (_channel) => {
-                let tmp : channelDto = await this.channel.getChannelByName(_channel)
-                if (tmp)
-                    return tmp.name
-            })
-            return _user.channels
+            let conversations : ConversationDto[] = await this.conversation.getConversations(req.user.id);
+            if (conversations) {
+                console.log(conversations);
+                conversations.forEach(async (conv)=> {
+                    let sender : UserDto = await this.user.getUserById(conv.senderId)
+                    let reciever : UserDto = await this.user.getUserById(conv.recieverId)
+                    if (sender && reciever) {
+                        console.log(`sender =====> `, sender, `reciever =====> `,reciever);
+                        let _mesasges : messageDto[] = await this.message.getMessages(conv.id)
+                        console.log('messages ******** ',_mesasges, "fafdfadfadff : ", conv);
+                        
+                        let tmp : conversationToFront = new conversationToFront;
+                        if (sender.id = req.user.id) {
+                            tmp.username = sender.username
+                            tmp.avatar = sender.avatar
+                            if (_mesasges && _mesasges[0] && _mesasges[0].content)
+                                tmp.lastMesasge = _mesasges[0].content
+                            else
+                                tmp.lastMesasge = ''
+                        }
+                        else {
+                            tmp.username = reciever.username
+                            tmp.avatar = reciever.avatar
+                            tmp.lastMesasge = ''
+                            if (_mesasges && _mesasges[0] && _mesasges[0].content)
+                                tmp.lastMesasge = _mesasges[0].content
+                            else
+                                tmp.lastMesasge = ''
+                        }
+                        console.log(tmp);
+                        conversationsFront.push(tmp)
+                    }
+                })
+                console.log(conversationsFront);
+                conversationsFront.forEach((conv)=> {
+                    
+                })
+            }
+            return conversationsFront
         }
     }
 

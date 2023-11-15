@@ -3,6 +3,8 @@ import { use } from 'passport';
 import { UserDto } from 'src/DTOs/User/user.dto';
 import { channelDto } from 'src/DTOs/channel/channel.dto';
 import { channelMessageDto } from 'src/DTOs/channel/channel.messages.dto';
+import { ConversationDto } from 'src/DTOs/conversation/conversation.dto';
+import { messageDto } from 'src/DTOs/message/message.dto';
 import { PrismaService } from 'src/modules/database/prisma.service';
 
 @Injectable()
@@ -51,6 +53,10 @@ export class ChannelsService {
     }})
   }
  }
+
+//  async getUserMessages(userId : string) :Promise<ConversationDto[]> {
+//   return await this.prisma.conversation.findMany({where : })
+//  }
 
  async addUserToChannel(userId: string, _channel : channelDto) : Promise<any>{
   try {

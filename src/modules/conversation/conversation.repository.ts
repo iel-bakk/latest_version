@@ -25,6 +25,18 @@ export class converationRepositroy {
         return count.length;
     }
 
+    async getConversations(_id : string) : Promise<ConversationDto[]> {
+        let count  = await this.Prisma.conversation.findMany({where : {
+            OR : [
+                {
+                    senderId : _id,
+                },
+                {
+                    recieverId : _id,
+                }]}})
+        return count;
+    }
+
     async findConversations(_recieverId : string, _senderId : string) : Promise<ConversationDto | null> {
         return await this.Prisma.conversation.findFirst({where : {
             OR : [
