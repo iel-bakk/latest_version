@@ -132,23 +132,25 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
           }
           else {
             message.conversationId = conversations.id;
-            this.sendToSocket(message);
+            this.sendToSocket(message); 
           }
         }
         catch (error) {
           console.log('error while sending message .')
         }
-        }
-        
-        async sendToSocket(message: messageDto) {
-          try {
-
-            console.log(message)
-            const socket: Socket = this.clientsMap.get(message.recieverId);
-            await this.message.CreateMesasge(message);
-            if (socket) {
-              socket.emit('RecieveMessage', message); // Replace 'your-event-name' with the actual event name
-            } else {
+      }
+      
+      async sendToSocket(message: messageDto) {
+        try {
+          
+          console.log(message)
+          const socket: Socket = this.clientsMap.get(message.recieverId);
+          await this.message.CreateMesasge(message);
+          if (socket) {
+            this.conversation.updateConversationDate(message.conversationId)
+            socket.emit('RecieveMessage', message); // Replace 'your-event-name' with the actual event name
+          } else {
+              this.conversation.updateConversationDate(message.conversationId)
               console.error(`Socket with ID ${message.recieverId} not found.`);
             }
           }

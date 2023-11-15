@@ -53,6 +53,7 @@ export class ChatController {
                 }
             }
             console.log(data);
+            data.sort((a, b) => new Date(b.updatedAt).valueOf() - new Date(a.updatedAt).valueOf());
             return data
         }
     }
