@@ -47,6 +47,7 @@ export class ChatController {
                         tmp.online = false;
                         tmp.messages = await this.message.getMessages(conversations[index], req.user.id)
                         tmp.updatedAt = conversations[index].updatedAt
+                        tmp.id = 0
                         data.push(tmp)
                         console.log(tmp);
                     }
@@ -54,6 +55,10 @@ export class ChatController {
             }
             console.log(data);
             data.sort((a, b) => new Date(b.updatedAt).valueOf() - new Date(a.updatedAt).valueOf());
+            let index: number = 0
+            data.forEach((_data) => {
+                _data.id = index++;
+            })
             return data
         }
     }

@@ -12,4 +12,6 @@ export class frontData {
     messages : chatDto[];
 
     updatedAt  : Date;
+
+    id : number;
 }
