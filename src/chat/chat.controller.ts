@@ -46,6 +46,7 @@ export class ChatController {
                         tmp.username = (_user.id == _sender.id) ? _reciever.username : _sender.username;
                         tmp.online = false;
                         tmp.messages = await this.message.getMessages(conversations[index], req.user.id)
+                        tmp.lastMesasge = ''
                         data.push(tmp)
                         console.log(tmp);
                     }
