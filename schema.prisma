@@ -29,6 +29,7 @@ model User {
   achievements          String[]
   channels              String[]
   bandUsers             String[]
+  online                Boolean ? @default(false)
 }
 
 model Channel {

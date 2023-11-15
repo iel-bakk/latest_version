@@ -23,4 +23,6 @@ export class UserDto {
     channels : string[];
 
     bandUsers : string[];
+
+    online :    boolean;
 }

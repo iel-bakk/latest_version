@@ -34,6 +34,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
                 if (test) {
                   console.log(test.id);
                   this.clientsMap.set(test.id, client);
+                  await this.user.updateUserOnlineStatus(true, user.sub)
                   console.log(`this is a test : ${test.id} ****`)
                 }
               }
@@ -52,8 +53,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
       }
   }
 
-      handleDisconnect(client: Socket) {
-            this.clientsMap.delete(client.id); // Remove the client from the map when disconnected
+      async handleDisconnect(client: Socket) {
+          let cookie : string = client.client.request.headers.cookie;
+          if (cookie) {
+            const jwt:string = cookie.substring(cookie.indexOf('=') + 1)
+            console.log('here is the jwt : ', jwt);
+            let user;
+            user =  this.jwtService.verify(jwt);
+            if (user) {
+              const test = await this.user.getUserById(user.sub)
+              if (test) {
+                console.log(test.id);
+                await this.user.updateUserOnlineStatus(false, test.id)
+                console.log(`this is a test : ${test.id} ****`)
+              }
+            }
+          }
+          this.clientsMap.delete(client.id);
       }
 
       @SubscribeMessage('channelMessage')

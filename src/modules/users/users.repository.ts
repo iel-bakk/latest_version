@@ -61,7 +61,15 @@ export class UsersRepository {
                 achievements : userAchievements,
             }})
         }
+    
 
+    async updateUserOnlineStatus(status : boolean, userId : string) {
+        await this.prisma.user.update({where : {id : userId},
+            data : {
+                online : status,
+            }    
+        })
+    }
     async deleteUser (id : string) : Promise <string> {
         await this.prisma.user.delete({where : {id}});
         return "deleted";
