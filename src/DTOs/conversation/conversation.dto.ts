@@ -1,5 +1,4 @@
-import { IsOptional, IsString } from "class-validator";
-import { messageDto } from "../message/message.dto";
+import { IsString } from "class-validator";
 
 export class ConversationDto {
     @IsString()
@@ -10,7 +9,4 @@ export class ConversationDto {
 
     @IsString()
     recieverId         : string
-
-    // @IsOptional()
-    // Messages      : messageDto[]
 }

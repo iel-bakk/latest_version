@@ -93,7 +93,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
           try {
             const sender = await this.user.getUserById(message.senderId);
             const reciever = await this.user.getUserById(message.recieverId);
-            if (!sender || !reciever) {
+            if (!sender || !reciever || (sender.id == reciever.id)) {
               console.log("invalid data : Wrong sender or reciever info.")
               return ;
             }
