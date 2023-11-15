@@ -6,10 +6,10 @@ export class frontData {
     avatar : string;
     
     username : string;
-    
-    lastMesasge : string;
 
     online : boolean;
 
     messages : chatDto[];
+
+    updatedAt  : Date;
 }

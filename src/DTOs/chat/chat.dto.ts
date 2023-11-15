@@ -6,6 +6,8 @@ export class chatDto {
     avatar : string;
 
     sender : string;
+
+    date    : Date;
 }
 
 

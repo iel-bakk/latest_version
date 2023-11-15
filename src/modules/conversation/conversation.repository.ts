@@ -33,7 +33,11 @@ export class converationRepositroy {
                 },
                 {
                     recieverId : _id,
-                }]}})
+                }]},
+                orderBy: {
+                    updatedAt: 'desc',
+                  },
+            })
         return count;
     }
 

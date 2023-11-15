@@ -9,4 +9,6 @@ export class ConversationDto {
 
     @IsString()
     recieverId         : string
+
+    updatedAt           : Date
 }

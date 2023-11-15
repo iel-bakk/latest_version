@@ -15,4 +15,6 @@ export class messageDto {
     
     @IsString()
     recieverId      :       string
+
+    date            :       Date
 }

@@ -70,6 +70,7 @@ model Conversation {
   userA                 User  @relation("sender", fields: [senderId], references: [id], onDelete: Cascade)
   userB                 User  @relation("reciever", fields: [recieverId], references: [id], onDelete: Cascade)
   messages              Message[]
+  updatedAt             DateTime @default(now())
 }
 
 model Message {
@@ -81,6 +82,7 @@ model Message {
   recieverId            String
   recieved              Boolean @default(false)
   conversation          Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  date                  DateTime ? @default(now())
 }
 
 model ChannelMessage {
