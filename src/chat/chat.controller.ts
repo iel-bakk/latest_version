@@ -35,7 +35,6 @@ export class ChatController {
         if (_user) {
             let conversations : ConversationDto[] = await this.conversation.getConversations(_user.id)
             if  (conversations) {
-                // conversations.forEach( async (conversation) => {
                     for (let index : number = 0; index < conversations.length; index++) {
                     let tmp : frontData = new frontData;
                     let _sender : UserDto = await this.user.getUserById(conversations[index].senderId)
@@ -45,9 +44,9 @@ export class ChatController {
                         tmp.avatar = (_user.id == _sender.id) ? _reciever.avatar : _sender.avatar;
                         tmp.username = (_user.id == _sender.id) ? _reciever.username : _sender.username;
                         tmp.online = false;
-                        tmp.messages = await this.message.getMessages(conversations[index], req.user.id)
-                        tmp.updatedAt = conversations[index].updatedAt
                         tmp.id = 0
+                        tmp.updatedAt = conversations[index].updatedAt
+                        tmp.messages = await this.message.getMessages(conversations[index], req.user.id)
                         data.push(tmp)
                         console.log(tmp);
                     }

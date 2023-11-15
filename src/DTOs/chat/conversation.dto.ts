@@ -9,9 +9,9 @@ export class frontData {
 
     online : boolean;
 
-    messages : chatDto[];
-
     updatedAt  : Date;
-
+    
     id : number;
+    
+    messages : chatDto[];
 }
