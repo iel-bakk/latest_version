@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Req, Res, UseGuards } from "@nestjs/common";
 import { UserDto } from "src/DTOs/User/user.dto";
 import { FriendDto } from "src/DTOs/friends/friend.dto";
 import { InviteDto } from "src/DTOs/invitation/invite.dto";
@@ -9,7 +9,7 @@ import { InvitesRepository } from "src/modules/invites/invites.repository";
 import { UsersRepository } from "src/modules/users/users.repository";
 import { ChannelsService } from "./chat.service";
 import { channelDto } from "src/DTOs/channel/channel.dto";
-import { Request } from "express";
+import { Request, Response } from "express";
 import { channelMessageDto } from "src/DTOs/channel/channel.messages.dto";
 import { channelParams } from "src/DTOs/channel/channel.params.dto";
 import { ConversationDto } from "src/DTOs/conversation/conversation.dto";
@@ -27,42 +27,60 @@ export class ChatController {
                 , private channel : ChannelsService
                 , private message: messageRepository) {}
 
-    @Get(':id')
-    // @UseGuards(JwtAuth)
-    async getUserMessages(@Param('id') id :string) :Promise<any> {
-        let _user : UserDto = await this.user.getUserById(id)
-        console.log('id : ', id, '_user : ', _user);
-        console.log('999999999999999999999999');
-        
-        let data : frontData[] = [];
-        if (_user) {
-            let conversations : ConversationDto[] = await this.conversation.getConversations(_user.id)
-            if  (conversations) {
+    @Get()
+    @UseGuards(JwtAuth)
+    async getUserMessages(@Req() req: Request, @Res() res: Response) :Promise<any> {
+        try {
+            let _user : UserDto = await this.user.getUserById(id)
+            console.log('id : ', id, '_user : ', _user);
+            console.log('999999999999999999999999');
+            
+            let data : frontData[] = [];
+            if (_user) {
+                let conversations : ConversationDto[] = await this.conversation.getConversations(_user.id)
+                if  (conversations) {
                     for (let index : number = 0; index < conversations.length; index++) {
-                    let tmp : frontData = new frontData;
-                    let _sender : UserDto = await this.user.getUserById(conversations[index].senderId)
-                    let _reciever : UserDto = await this.user.getUserById(conversations[index].recieverId)
-                    if (_sender && _reciever) {
-                        tmp.Conversationid = conversations[index].id   
-                        tmp.owner = _user.username
-                        tmp.avatar = (_user.username == _sender.username) ? _reciever.avatar : _sender.avatar;
-                        tmp.username = (_user.username == _sender.username) ? _reciever.username : _sender.username;
-                        tmp.online = false;
-                        tmp.id = 0
-                        tmp.updatedAt = conversations[index].updatedAt
-                        tmp.messages = await this.message.getMessages(conversations[index], id)
-                        data.push(tmp)
-                        // console.log(tmp);
+                        let tmp : frontData = new frontData;
+                        let _sender : UserDto = await this.user.getUserById(conversations[index].senderId)
+                        let _reciever : UserDto = await this.user.getUserById(conversations[index].recieverId)
+                        if (_sender && _reciever) {
+                            tmp.Conversationid = conversations[index].id   
+                            tmp.owner = _user.username
+                            tmp.avatar = (_user.username == _sender.username) ? _reciever.avatar : _sender.avatar;
+                            tmp.username = (_user.username == _sender.username) ? _reciever.username : _sender.username;
+                            tmp.online = false;
+                            tmp.id = 0
+                            tmp.updatedAt = conversations[index].updatedAt
+                            tmp.messages = await this.message.getMessages(conversations[index], id)
+                            data.push(tmp)
+                            // console.log(tmp);
+                        }
+                        else {
+                            let empty : frontData;
+                            empty.messages = [];
+                            empty.Conversationid = null;
+                            empty.avatar = null;
+                            empty.online = false;
+                            empty.owner = null;
+                            empty.username = null;
+                            res.status(200).json(empty);
+                        }
                     }
                 }
+                console.log(data);
+                data.sort((a, b) => new Date(b.updatedAt).valueOf() - new Date(a.updatedAt).valueOf());
+                let index: number = 0
+                data.forEach((_data) => {
+                    _data.id = index++;
+                })
+                // return data
+                res.status(200).json(data)
             }
-            console.log(data);
-            data.sort((a, b) => new Date(b.updatedAt).valueOf() - new Date(a.updatedAt).valueOf());
-            let index: number = 0
-            data.forEach((_data) => {
-                _data.id = index++;
-            })
-            return data
+            else
+                throw('invalid User .')
+        }
+        catch (error) {
+            res.status(400).json(error)
         }
     }
 
@@ -140,13 +158,14 @@ export class ChatController {
     @Delete('removeUserFromChannel')
     @UseGuards(JwtAuth)
     async removeUserFromChannel(@Req() req: Request & {user : UserDto}, @Body() data: channelParams) {
-        console.log(`username recieved from body : ${data.username}`);
-        let tmpUser: UserDto = await this.user.getUserByUsername(data.username)
-        let  tmpchannel : channelDto = await this.channel.getChannelByName(data.channelName)
-        console.log(`user to delete : `, tmpUser);
-        console.log(`channel : `, tmpchannel);
-            if ( tmpUser && tmpchannel && tmpchannel.admins.includes(req.user.id) && tmpchannel.users.includes(tmpUser.id))
-            {
+        try {
+                console.log(`username recieved from body : ${data.username}`);
+                let tmpUser: UserDto = await this.user.getUserByUsername(data.username)
+                let  tmpchannel : channelDto = await this.channel.getChannelByName(data.channelName)
+                console.log(`user to delete : `, tmpUser);
+                console.log(`channel : `, tmpchannel);
+                if ( tmpUser && tmpchannel && tmpchannel.admins.includes(req.user.id) && tmpchannel.users.includes(tmpUser.id))
+                {
                 if (tmpUser.id == tmpchannel.owner && req.user.id == tmpchannel.owner)
                     await this.channel.removeUserFromChannel(tmpUser.id, tmpchannel.id);
                 else if (tmpUser.id != tmpchannel.owner)
@@ -155,6 +174,10 @@ export class ChatController {
                 if (check && !check.users.length)
                     await this.channel.deleteChannel(check.id);
                 console.log(check.users)
+                }
+            }
+            catch (error) {
+                console.log(error);
             }
     }
 

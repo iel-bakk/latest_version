@@ -13,9 +13,9 @@ export class messageRepository {
 
     async CreateMesasge(message : messageDto) : Promise<messageDto> {
         this.Primsa.conversation.update({where : {id : message.conversationId},
-        data : {
-            updatedAt : new Date
-        }    
+            data : {
+                updatedAt : new Date
+            }
         })
         return await this.Primsa.message.create({data : {
             senderId : message.senderId,
@@ -31,7 +31,7 @@ export class messageRepository {
             conversationId : _conversation.id
         },
         orderBy: {
-            date: 'desc',
+            date: 'asc',
           },
         })
         let _user : UserDto = await this.Primsa.user.findFirst({where : {id : requesterId}})
@@ -53,6 +53,8 @@ export class messageRepository {
             })
             return data
         }
+        else if (!_sender || !_reciever || !_user)
+            throw ('invalid data.')
     }
 
     async DeleteMessage(id : string) : Promise<string> {

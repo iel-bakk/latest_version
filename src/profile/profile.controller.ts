@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { MatchDto } from 'src/DTOs/Match/match.dto';
 import { matchModel } from 'src/DTOs/Match/match.model';
 import { UserDto } from 'src/DTOs/User/user.dto';
@@ -20,15 +21,18 @@ export class ProfileController {
                  private file : FileService,
                  private friend: FriendsRepository)
                 {}
-    @Get(':id')
-    async GetUserData(@Param('id') id: string) : Promise<UserData | string> {
+    @Get()
+    @UseGuards(JwtAuth)
+    async GetUserData(@Req() req: Request & {user : UserDto}, @Res() res: Response) : Promise<void> {
+        try {
+
         const _achievements : AchievementDto[] = await this.achievement.getAchievements();
         if (!_achievements.length)
             await this.achievement.CreateAchievment(this.file);
-        const _matches: MatchDto[] =  await this.match.findMatchesByUserId(id)
-        let tmpUser : UserDto  = await this.user.getUserById(id)
+        const _matches: MatchDto[] =  await this.match.findMatchesByUserId(req.user.id)
+        let tmpUser : UserDto  = await this.user.getUserById(req.user.id)
         if (!tmpUser)
-            return 'no such user.'
+            throw ('no such user.')
         let profileData : UserData = {
             userData : tmpUser,
             achievements : _achievements,
@@ -70,19 +74,18 @@ export class ProfileController {
                 playerAUsername : _playerAAUsername,
                 playerBUsername : _playerBAUsername,
             };
-            try {
                 return tmp;
-            }
-            catch (error) {
-                console.log("error profile -> match");
-                return null;
-            }
         }))
         profileData.matches = tmpMatches.filter((match) => match !== null);
         console.log(profileData.matches);
         console.log(_achievements)
-        return profileData
-    }
+        res.status(200).json(profileData)
+        }
+        catch(error) {
+            res.status(400).json('Invalid data .')
+        }
+}
+
 
     @Post('addFriend')
     @UseGuards(JwtAuth)
