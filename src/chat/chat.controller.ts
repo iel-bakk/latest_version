@@ -29,12 +29,9 @@ export class ChatController {
 
     @Get()
     @UseGuards(JwtAuth)
-    async getUserMessages(@Req() req: Request, @Res() res: Response) :Promise<any> {
+    async getUserMessages(@Req() req: Request & {user : UserDto}, @Res() res: Response) :Promise<any> {
         try {
-            let _user : UserDto = await this.user.getUserById(id)
-            console.log('id : ', id, '_user : ', _user);
-            console.log('999999999999999999999999');
-            
+            let _user : UserDto = await this.user.getUserById(req.user.id)
             let data : frontData[] = [];
             if (_user) {
                 let conversations : ConversationDto[] = await this.conversation.getConversations(_user.id)
@@ -51,9 +48,8 @@ export class ChatController {
                             tmp.online = false;
                             tmp.id = 0
                             tmp.updatedAt = conversations[index].updatedAt
-                            tmp.messages = await this.message.getMessages(conversations[index], id)
+                            tmp.messages = await this.message.getMessages(conversations[index], req.user.id)
                             data.push(tmp)
-                            // console.log(tmp);
                         }
                         else {
                             let empty : frontData;
@@ -73,7 +69,6 @@ export class ChatController {
                 data.forEach((_data) => {
                     _data.id = index++;
                 })
-                // return data
                 res.status(200).json(data)
             }
             else
@@ -89,26 +84,30 @@ export class ChatController {
     async SendInvitation(@Body() invitation : InviteDto, @Req() req: Request & {user : UserDto}) : Promise<InviteDto | string> {
         if (req.user.id != invitation.invitationSenderId || req.user.id == invitation.invitationRecieverId)
             return "Sir tel3eb";
-        let tmp = await this.invite.createInvite(invitation);
+        let tmp : InviteDto = await this.invite.createInvite(invitation);
         if (tmp == null)
             return `Already Friends`;
-        return tmp as InviteDto;
+        return tmp;
     }
 
     @Post('createChannel')
     @UseGuards(JwtAuth)
-    async createChannel(@Body() channelData : channelDto, @Req() req: Request & {user : UserDto}) : Promise<any> {
+    async createChannel(@Body() channelData : channelDto, @Req() req: Request & {user : UserDto}, @Res() res: Response) : Promise<any> {
+        try {
             console.log(channelData);
             if ((channelData.IsPrivate && channelData.IsProtected) || (channelData.IsPrivate && channelData.password.length))
-                return `can't have private channel with password.`
+                throw( `can't have private channel with password.`)
             if (channelData.IsProtected && channelData.password.length == 0)
-                return `can't have empty passwords on protected chat rooms`
+                throw(`can't have empty passwords on protected chat rooms`)
             if (!channelData.IsProtected && channelData.password.length)
-                return `can't set password to none protected chat rooms`
-
+                throw(`can't set password to none protected chat rooms`)
             let test : channelDto = await this.channel.createChannel(channelData, req.user.id);
             console.log(test);
-            return 'channel created succefuly'
+            res.status(200).json('channel created succefuly')
+        }
+        catch (error) {
+            res.status(400).json(error)
+        } 
     }
 
 
