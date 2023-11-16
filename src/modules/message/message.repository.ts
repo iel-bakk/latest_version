@@ -34,17 +34,20 @@ export class messageRepository {
             date: 'desc',
           },
         })
+        let _user : UserDto = await this.Primsa.user.findFirst({where : {id : requesterId}})
         let _sender : UserDto = await this.Primsa.user.findUnique({where : {id : _conversation.senderId}})
         let _reciever : UserDto = await this.Primsa.user.findUnique({where : {id : _conversation.recieverId}})
-        if (messages && _sender && _reciever) {
+        if (messages && _sender && _reciever && _user) {
             let data : chatDto[] = []
             messages.forEach((message) => {
+                console.log("*********", "message sender : ",message.senderId, "_user : ",_user.username);
+                
                 data.push( {
-                    isOwner : (requesterId == message.senderId),
+                    isOwner : message.senderId == _user.username,
                     content : message.content,
-                    avatar : (_sender.id == message.senderId) ?  _sender.avatar : _reciever.avatar,
-                    sender : (_sender.id == message.senderId) ?  _sender.username : _reciever.username,
-                    reciever : (_sender.id == message.senderId) ?   _reciever.username :  _sender.username,
+                    avatar : (_sender.username == message.senderId) ?  _sender.avatar : _reciever.avatar,
+                    sender : (_sender.username == message.senderId) ?  _sender.username : _reciever.username,
+                    reciever : (_reciever.username == message.recieverId) ?   _reciever.username :  _sender.username,
                     date : message.date
                 } )
             })

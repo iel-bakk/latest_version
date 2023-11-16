@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Post, Put, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards } from "@nestjs/common";
 import { UserDto } from "src/DTOs/User/user.dto";
 import { FriendDto } from "src/DTOs/friends/friend.dto";
 import { InviteDto } from "src/DTOs/invitation/invite.dto";
@@ -27,10 +27,13 @@ export class ChatController {
                 , private channel : ChannelsService
                 , private message: messageRepository) {}
 
-    @Get()
-    @UseGuards(JwtAuth)
-    async getUserMessages(@Req() req: Request & {user : UserDto}) :Promise<any> {
-        let _user : UserDto = await this.user.getUserById(req.user.id)
+    @Get(':id')
+    // @UseGuards(JwtAuth)
+    async getUserMessages(@Param('id') id :string) :Promise<any> {
+        let _user : UserDto = await this.user.getUserById(id)
+        console.log('id : ', id, '_user : ', _user);
+        console.log('999999999999999999999999');
+        
         let data : frontData[] = [];
         if (_user) {
             let conversations : ConversationDto[] = await this.conversation.getConversations(_user.id)
@@ -42,14 +45,14 @@ export class ChatController {
                     if (_sender && _reciever) {
                         tmp.Conversationid = conversations[index].id   
                         tmp.owner = _user.username
-                        tmp.avatar = (_user.id == _sender.id) ? _reciever.avatar : _sender.avatar;
-                        tmp.username = (_user.id == _sender.id) ? _reciever.username : _sender.username;
+                        tmp.avatar = (_user.username == _sender.username) ? _reciever.avatar : _sender.avatar;
+                        tmp.username = (_user.username == _sender.username) ? _reciever.username : _sender.username;
                         tmp.online = false;
                         tmp.id = 0
                         tmp.updatedAt = conversations[index].updatedAt
-                        tmp.messages = await this.message.getMessages(conversations[index], req.user.id)
+                        tmp.messages = await this.message.getMessages(conversations[index], id)
                         data.push(tmp)
-                        console.log(tmp);
+                        // console.log(tmp);
                     }
                 }
             }

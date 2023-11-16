@@ -20,37 +20,37 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
     private clientsMap: Map<string, Socket>;
 
     async handleConnection(client: Socket, ...args: any[]) {
-      try {
-            let cookie : string = client.client.request.headers.cookie;
-            if (cookie) {
-              const jwt:string = cookie.substring(cookie.indexOf('=') + 1)
-              console.log('here is the jwt : ', jwt);
-              let user;
-              user =  this.jwtService.verify(jwt);
-              console.log('here');
-              console.log(user)
-              if (user) {
-                const test = await this.user.getUserById(user.sub)
-                if (test) {
-                  console.log(test.id);
-                  this.clientsMap.set(test.id, client);
-                  await this.user.updateUserOnlineStatus(true, user.sub)
-                  console.log(`this is a test : ${test.id} ****`)
-                }
-              }
-            }
-          else {
-            console.log("user dosen't exist in database");
-            client.emit('ERROR', "RAH KAN3REF BAK, IHCHEM")
-            client.disconnect();
-          }
-        }
-        catch (error) {
-          console.log("user dosen't exist in database");
-          client.emit('ERROR', "RAH KAN3REF BAK, IHCHEM")
-          client.disconnect()
-          console.log("invalid data : check JWT or DATABASE QUERIES")
-      }
+      // try {
+            // let cookie : string = client.client.request.headers.cookie;
+            // if (cookie) {
+              // const jwt:string = cookie.substring(cookie.indexOf('=') + 1)
+              // console.log('here is the jwt : ', jwt);
+              // let user;
+              // user =  this.jwtService.verify(jwt);
+              // console.log('here');
+              // console.log(user)
+              // if (user) {
+                // const test = await this.user.getUserById(user.sub)
+                // if (test) {
+                  // console.log(test.id);
+                  this.clientsMap.set(client.id, client);
+                  // await this.user.updateUserOnlineStatus(true, user.sub)
+                  // console.log(`this is a test : ${test.id} ****`)
+            //     }
+            //   }
+            // }
+      //     else {
+      //       console.log("user dosen't exist in database");
+      //       client.emit('ERROR', "RAH KAN3REF BAK, IHCHEM")
+      //       client.disconnect();
+      //     }
+      //   }
+      //   catch (error) {
+      //     console.log("user dosen't exist in database");
+      //     client.emit('ERROR', "RAH KAN3REF BAK, IHCHEM")
+      //     client.disconnect()
+      //     console.log("invalid data : check JWT or DATABASE QUERIES")
+      // }
   }
 
       async handleDisconnect(client: Socket) {
@@ -107,8 +107,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
       @SubscribeMessage('SendMessage')
         async hanldeMessage(@MessageBody() message: messageDto) {
           try {
-            const sender = await this.user.getUserById(message.senderId);
-            const reciever = await this.user.getUserById(message.recieverId);
+            const sender = await this.user.getUserByUsername(message.senderId);
+            const reciever = await this.user.getUserByUsername(message.recieverId);
             if (!sender || !reciever || (sender.id == reciever.id)) {
               console.log("invalid data : Wrong sender or reciever info.")
               return ;
