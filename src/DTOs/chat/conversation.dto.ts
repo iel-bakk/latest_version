@@ -7,6 +7,8 @@ export class frontData {
     
     username : string;
 
+    owner : string;
+
     online : boolean;
 
     updatedAt  : Date;

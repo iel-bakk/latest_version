@@ -7,6 +7,8 @@ export class chatDto {
 
     sender : string;
 
+    reciever: string;
+
     date    : Date;
 }
 

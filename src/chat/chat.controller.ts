@@ -41,6 +41,7 @@ export class ChatController {
                     let _reciever : UserDto = await this.user.getUserById(conversations[index].recieverId)
                     if (_sender && _reciever) {
                         tmp.Conversationid = conversations[index].id   
+                        tmp.owner = _user.username
                         tmp.avatar = (_user.id == _sender.id) ? _reciever.avatar : _sender.avatar;
                         tmp.username = (_user.id == _sender.id) ? _reciever.username : _sender.username;
                         tmp.online = false;

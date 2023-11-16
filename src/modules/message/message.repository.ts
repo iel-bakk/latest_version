@@ -44,6 +44,7 @@ export class messageRepository {
                     content : message.content,
                     avatar : (_sender.id == message.senderId) ?  _sender.avatar : _reciever.avatar,
                     sender : (_sender.id == message.senderId) ?  _sender.username : _reciever.username,
+                    reciever : (_sender.id == message.senderId) ?   _reciever.username :  _sender.username,
                     date : message.date
                 } )
             })
