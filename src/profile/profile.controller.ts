@@ -24,6 +24,8 @@ export class ProfileController {
     @Get()
     @UseGuards(JwtAuth)
     async GetUserData(@Req() req: Request & {user : UserDto}, @Res() res: Response) : Promise<void> {
+        console.log(`kajsflsahdfhjsadfhasdfklasdhfh`);
+        
         try {
 
         const _achievements : AchievementDto[] = await this.achievement.getAchievements();

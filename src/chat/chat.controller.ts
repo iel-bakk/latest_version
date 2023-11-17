@@ -63,7 +63,7 @@ export class ChatController {
                         }
                     }
                 }
-                console.log(data);
+                // console.log(data);
                 data.sort((a, b) => new Date(b.updatedAt).valueOf() - new Date(a.updatedAt).valueOf());
                 let index: number = 0
                 data.forEach((_data) => {

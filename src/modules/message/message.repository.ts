@@ -40,15 +40,16 @@ export class messageRepository {
         if (messages && _sender && _reciever && _user) {
             let data : chatDto[] = []
             messages.forEach((message) => {
-                console.log("*********", "message sender : ",message.senderId, "_user : ",_user.username);
+                // console.log("*********", "message sender : ",message.senderId, "_user : ",_user.username);
                 
                 data.push( {
                     isOwner : message.senderId == _user.username,
                     content : message.content,
                     avatar : (_sender.username == message.senderId) ?  _sender.avatar : _reciever.avatar,
                     sender : (_sender.username == message.senderId) ?  _sender.username : _reciever.username,
-                    reciever : (_reciever.username == message.recieverId) ?   _reciever.username :  _sender.username,
-                    date : message.date
+                    // reciever : (_reciever.username == message.recieverId) ?   _reciever.username :  _sender.username,
+                    date : message.date,
+                    conversationId : message.conversationId
                 } )
             })
             return data

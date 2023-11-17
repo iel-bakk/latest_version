@@ -9,6 +9,8 @@ export class JwtAuth implements CanActivate {
     constructor(private jwtService: JwtService, private userService: UserService) {}
     async canActivate(context: ExecutionContext): Promise<boolean> {
         try {
+            console.log('got here *********');
+            
             var request = context.switchToHttp().getRequest();
             var token : string = this.extractTokenFromHeader(request);
             if (!token) return false;

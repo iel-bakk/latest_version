@@ -10,6 +10,9 @@ import { messageRepository } from "src/modules/message/message.repository";
 import { UsersRepository } from "src/modules/users/users.repository";
 import { ChannelsService } from "./chat.service";
 import { use } from "passport";
+import { frontData } from "src/DTOs/chat/conversation.dto";
+import { chatDto } from "src/DTOs/chat/chat.dto";
+import { ConversationDto } from "src/DTOs/conversation/conversation.dto";
 
 @WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
@@ -20,37 +23,39 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
     private clientsMap: Map<string, Socket>;
 
     async handleConnection(client: Socket, ...args: any[]) {
-      // try {
-            // let cookie : string = client.client.request.headers.cookie;
-            // if (cookie) {
-              // const jwt:string = cookie.substring(cookie.indexOf('=') + 1)
+      try {
+        // console.log('here');
+        
+            let cookie : string = client.client.request.headers.cookie;
+            if (cookie) {
+              const jwt:string = cookie.substring(cookie.indexOf('=') + 1)
               // console.log('here is the jwt : ', jwt);
-              // let user;
-              // user =  this.jwtService.verify(jwt);
+              let user;
+              user =  this.jwtService.verify(jwt);
               // console.log('here');
-              // console.log(user)
-              // if (user) {
-                // const test = await this.user.getUserById(user.sub)
-                // if (test) {
-                  // console.log(test.id);
-                  this.clientsMap.set(client.id, client);
-                  // await this.user.updateUserOnlineStatus(true, user.sub)
+              console.log(user)
+              if (user) {
+                const test = await this.user.getUserById(user.sub)
+                if (test) {
+                  console.log(test.id);
+                  this.clientsMap.set(test.id, client);
+                  await this.user.updateUserOnlineStatus(true, user.sub)
                   // console.log(`this is a test : ${test.id} ****`)
-            //     }
-            //   }
-            // }
-      //     else {
-      //       console.log("user dosen't exist in database");
-      //       client.emit('ERROR', "RAH KAN3REF BAK, IHCHEM")
-      //       client.disconnect();
-      //     }
-      //   }
-      //   catch (error) {
-      //     console.log("user dosen't exist in database");
-      //     client.emit('ERROR', "RAH KAN3REF BAK, IHCHEM")
-      //     client.disconnect()
-      //     console.log("invalid data : check JWT or DATABASE QUERIES")
-      // }
+                }
+              }
+            }
+          else {
+            console.log("user dosen't exist in database");
+            client.emit('ERROR', "RAH KAN3REF BAK, IHCHEM")
+            client.disconnect();
+          }
+        }
+        catch (error) {
+          console.log("user dosen't exist in database");
+          client.emit('ERROR', "RAH KAN3REF BAK, IHCHEM")
+          client.disconnect()
+          console.log("invalid data : check JWT or DATABASE QUERIES")
+      }
   }
 
       async handleDisconnect(client: Socket) {
@@ -75,14 +80,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
       @SubscribeMessage('channelMessage')
       async handleChannelMessage(@MessageBody() message: channelMessageDto) {
         try {
-          console.log('got here ff : ',message.sender);
           let _user : UserDto = await this.user.getUserById(message.sender)
           let channel : channelDto = await this.channel.getChannelByName(message.channelName)
           if (_user && channel && channel.users.includes(_user.id))  {
             channel.users.forEach((user) => {
-              console.log('user :', user );
               if (user != message.sender && channel.users.includes(user)) {
-                console.log('reciever : ',user);
                 let socket: Socket = this.clientsMap.get(user)
                 if (socket)
                   socket.emit('channelMessage', message);
@@ -93,8 +95,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
             else {
               let socket: Socket = this.clientsMap.get(_user.id)
               if (socket) {
-                // console.log(socket);
-                console.log('send error message');
                 socket.emit('ERROR', 'SERVER : your not in channel .');
               }
             }
@@ -144,15 +144,24 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
         try {
           
           console.log(message)
-          const socket: Socket = this.clientsMap.get(message.recieverId);
-          await this.message.CreateMesasge(message);
-          if (socket) {
-            this.conversation.updateConversationDate(message.conversationId)
-            socket.emit('RecieveMessage', message); // Replace 'your-event-name' with the actual event name
-          } else {
+          let _reciever : UserDto = await this.user.getUserByUsername(message.recieverId)
+          if (_reciever) {
+            const socket: Socket = this.clientsMap.get(_reciever.id);
+            await this.message.CreateMesasge(message);
+            if (socket) {
+              this.conversation.updateConversationDate(message.conversationId)
+              let data : chatDto = new chatDto;
+              data.content = message.content
+              data.sender = message.senderId
+              data.avatar = null
+              data.isOwner = false
+              data.conversationId = message.conversationId 
+              socket.emit('RecieveMessage', data); // Replace 'your-event-name' with the actual event name
+            } else {
               this.conversation.updateConversationDate(message.conversationId)
               console.error(`Socket with ID ${message.recieverId} not found.`);
             }
+          }
           }
           catch (error) {
             console.log('error in the sendToSocket function')
