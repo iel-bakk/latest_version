@@ -13,9 +13,7 @@ import { Request, Response } from "express";
 import { channelMessageDto } from "src/DTOs/channel/channel.messages.dto";
 import { channelParams } from "src/DTOs/channel/channel.params.dto";
 import { ConversationDto } from "src/DTOs/conversation/conversation.dto";
-import { chatDto } from "src/DTOs/chat/chat.dto";
 import { frontData } from "src/DTOs/chat/conversation.dto";
-import { messageDto } from "src/DTOs/message/message.dto";
 import { messageRepository } from "src/modules/message/message.repository";
 
 @Controller('Chat')
@@ -84,6 +82,14 @@ export class ChatController {
     async getChannels(@Req() req: Request & {user : UserDto}) : Promise<any> {
         return await this.channel.getUserChannels(req.user.id);
     }
+    
+    @Post('channel')
+    @UseGuards(JwtAuth)
+    async getChannelsMessages(@Req() req: Request & {user : UserDto}, @Body('_channel') _channel : string) : Promise<channelMessageDto[]> {
+        return await this.channel.getChannelMessages(_channel)
+    }
+
+
 
     @Post('invite')
     @UseGuards(JwtAuth)

@@ -89,7 +89,7 @@ model ChannelMessage {
   id                    String @id @default(uuid())
   sender                String
   content               String
-  channelName           String
+  channelName           String @unique
 }
 
 model Match {

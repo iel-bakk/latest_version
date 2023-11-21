@@ -43,9 +43,9 @@ export class ChannelsService {
  }
 
  async createChannelMessage(message : channelMessageDto) : Promise<any> {
+  console.log('message recieved in channel : ',message);
   if (message) {
-    console.log('creating channel message');
-    
+    console.log('creating channel message', message);
     return this.prisma.channelMessage.create({data : {
       sender : message.sender,
       content : message.content,
@@ -280,6 +280,7 @@ async unBanUser(user: UserDto, ban : UserDto): Promise<string> {
   console.log('getting messages of : ',channel);
   
   let tmp =  await this.prisma.channelMessage.findMany({where : {channelName : channel}})
+  console.log(tmp);
   return tmp
  }
  }

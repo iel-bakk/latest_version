@@ -1,5 +1,5 @@
 import { JwtService } from "@nestjs/jwt";
-import {  MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
+import {  ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { UserDto } from "src/DTOs/User/user.dto";
 import { channelDto } from "src/DTOs/channel/channel.dto";
@@ -78,62 +78,94 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
       }
 
       @SubscribeMessage('channelMessage')
-      async handleChannelMessage(@MessageBody() message: channelMessageDto) {
+      async handleChannelMessage(@MessageBody() message: channelMessageDto,@ConnectedSocket() client : Socket) {
         try {
-          let _user : UserDto = await this.user.getUserById(message.sender)
-          let channel : channelDto = await this.channel.getChannelByName(message.channelName)
-          if (_user && channel && channel.users.includes(_user.id))  {
-            channel.users.forEach((user) => {
-              if (user != message.sender && channel.users.includes(user)) {
-                let socket: Socket = this.clientsMap.get(user)
-                if (socket)
-                  socket.emit('channelMessage', message);
+          
+          let cookie : string = client.client.request.headers.cookie;
+            if (cookie) {
+              const jwt:string = cookie.substring(cookie.indexOf('=') + 1)
+              let user;
+              user =  this.jwtService.verify(jwt);
+              console.log(user)
+              if (user) {
+                const _user = await this.user.getUserById(user.sub)
+                if (_user) {
+                  if (!_user.achievements.includes('send your first message'))
+                    this.user.updateAcheivement('send your first message', _user.id)
+                  let channel : channelDto = await this.channel.getChannelByName(message.channelName)
+                  console.log(channel, _user);
+                  if (_user && channel && channel.users.includes(_user.id))  {
+                    message.sender = _user.id
+                    await this.channel.createChannelMessage(message)
+                    channel.users.forEach((user) => {
+                      if (user != message.sender && channel.users.includes(user)) {
+                        let socket: Socket = this.clientsMap.get(user)
+                      if (socket) {
+                        socket.emit('channelMessage', message);
+                      }
+                    }
+                  })
               }
-            })
-            await this.channel.createChannelMessage(message)
-            }
             else {
               let socket: Socket = this.clientsMap.get(_user.id)
-              if (socket) {
-                socket.emit('ERROR', 'SERVER : your not in channel .');
-              }
+                  if (socket) {
+                      socket.emit('ERROR', 'SERVER : your not in channel .');
+                   }
+                   throw ('no such user or channel ...')
+                }
             }
+          }
         }
+        else
+          throw('unAuthorized Action ....')
+      }
         catch (error) {
           console.log('error while sending channel message .');
         }
       }
 
       @SubscribeMessage('SendMessage')
-        async hanldeMessage(@MessageBody() message: messageDto) {
+        async hanldeMessage(@MessageBody() message: messageDto, @ConnectedSocket() client : Socket) {
           try {
-            const sender = await this.user.getUserByUsername(message.senderId);
-            const reciever = await this.user.getUserByUsername(message.recieverId);
-            if (!sender || !reciever || (sender.id == reciever.id)) {
-              console.log("invalid data : Wrong sender or reciever info.")
-              return ;
-            }
-            if (reciever.bandUsers.includes(sender.id)) {
-              console.log("a banned user can't send messages .");
-              return ;
-            }
-            let achievementCheck : number = await this.conversation.numberOfConversations(sender.id)
-            if (achievementCheck > 0) {
-              if (!sender.achievements.includes('send your first message')) {
-                await this.user.updateAcheivement('send your first message', sender.id)
-                console.log('added first message')
-            }
-          }
-          let conversations = await this.conversation.findConversations(reciever.id, sender.id);
-          if (!conversations) {
-            const tmp = await this.conversation.createConversation(reciever.id, sender.id)
-            message.conversationId = tmp.id;
-            this.sendToSocket(message);
-          }
-          else {
-            message.conversationId = conversations.id;
-            this.sendToSocket(message); 
-          }
+            let cookie : string = client.client.request.headers.cookie;
+            if (cookie) {
+              const jwt:string = cookie.substring(cookie.indexOf('=') + 1)
+              let user;
+              user =  this.jwtService.verify(jwt);
+              console.log(user)
+              if (user) {
+                  const sender = await this.user.getUserByUsername(user.sub);
+                  const reciever = await this.user.getUserByUsername(message.recieverId);
+                  if (!sender || !reciever || (sender.id == reciever.id)) {
+                    console.log("invalid data : Wrong sender or reciever info.")
+                    return ;
+                  }
+                  if (reciever.bandUsers.includes(sender.id)) {
+                    console.log("a banned user can't send messages .");
+                    return ;
+                  }
+                  let achievementCheck : number = await this.conversation.numberOfConversations(sender.id)
+                  if (achievementCheck > 0) {
+                    if (!sender.achievements.includes('send your first message')) {
+                      await this.user.updateAcheivement('send your first message', sender.id)
+                      console.log('added first message')
+                  }
+                }
+                let conversations = await this.conversation.findConversations(reciever.id, sender.id);
+                if (!conversations) {
+                  const tmp = await this.conversation.createConversation(reciever.id, sender.id)
+                  message.conversationId = tmp.id;
+                  this.sendToSocket(message);
+                }
+                else {
+                  message.conversationId = conversations.id;
+                  this.sendToSocket(message); 
+                }
+              }
+        }
+        else {
+          throw (`invalid Request : not Authorized ...`)
+        }
         }
         catch (error) {
           console.log('error while sending message .')
@@ -142,7 +174,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
       
       async sendToSocket(message: messageDto) {
         try {
-          
           console.log(message)
           let _reciever : UserDto = await this.user.getUserByUsername(message.recieverId)
           if (_reciever) {
