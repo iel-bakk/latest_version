@@ -54,6 +54,13 @@ export class ChannelsService {
   }
  }
 
+ async getUserChannels(id : string) : Promise<channelDto[]> {
+  return await this.prisma.channel.findMany({where : {
+    users : {
+      has : id,
+    }
+  }})
+ }
 //  async getUserMessages(userId : string) :Promise<ConversationDto[]> {
 //   return await this.prisma.conversation.findMany({where : })
 //  }

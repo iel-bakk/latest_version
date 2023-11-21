@@ -27,7 +27,7 @@ export class ChatController {
                 , private channel : ChannelsService
                 , private message: messageRepository) {}
 
-    @Get()
+    @Get('user')
     @UseGuards(JwtAuth)
     async getUserMessages(@Req() req: Request & {user : UserDto}, @Res() res: Response) :Promise<any> {
         try {
@@ -77,6 +77,12 @@ export class ChatController {
         catch (error) {
             res.status(400).json(error)
         }
+    }
+
+    @Get('channel')
+    @UseGuards(JwtAuth)
+    async getChannels(@Req() req: Request & {user : UserDto}) : Promise<any> {
+        return await this.channel.getUserChannels(req.user.id);
     }
 
     @Post('invite')
