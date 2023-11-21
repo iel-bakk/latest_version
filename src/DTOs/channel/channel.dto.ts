@@ -23,3 +23,4 @@ export class channelDto {
     @IsString()
     password    : string;
 }
+

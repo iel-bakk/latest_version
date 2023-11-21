@@ -2,6 +2,8 @@ import { Injectable } from "@nestjs/common";
 import { AchievementDto } from "src/DTOs/achievement/achievement.dto";
 import { PrismaService } from "src/modules/database/prisma.service";
 import { FileService } from "../readfile/readfile";
+
+
 @Injectable()
 export class AchievementRepository {
     constructor (private readonly prisma: PrismaService) {}

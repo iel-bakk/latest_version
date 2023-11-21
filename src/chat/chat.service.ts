@@ -42,6 +42,39 @@ export class ChannelsService {
         return 'wrong data'
  }
 
+
+ async  muteUser(id : string, channel: string) : Promise<any> {
+  const now = new Date();
+  const muteDuration = new Date(now.getTime() + 5 * 60 * 1000);
+
+  await this.prisma.mutedUser.create({
+  data: {
+    userId: id,
+    channelId: channel,
+    until: muteDuration,
+  },
+});
+ }
+
+
+  async isMuted(id : string, channel : string) : Promise<boolean> {
+    const now = new Date();
+    const isMuted = await this.prisma.mutedUser.findFirst({
+      where: {
+        userId: id,
+        channelId: channel,
+        until: {
+          gt: now,
+        },
+      },
+    });
+    if (isMuted) {
+      return true;
+    } else {
+      return false;
+    }
+ }
+
  async createChannelMessage(message : channelMessageDto) : Promise<any> {
   console.log('message recieved in channel : ',message);
   if (message) {
@@ -53,6 +86,18 @@ export class ChannelsService {
     }})
   }
  }
+
+
+ async unMuteUser(id : string, channel: string) : Promise<any> {
+  await this.prisma.mutedUser.deleteMany({
+    where: {
+      userId: id,
+      channelId: channel,
+    },
+  });
+  
+ }
+
 
  async getUserChannels(id : string) : Promise<channelDto[]> {
   return await this.prisma.channel.findMany({where : {

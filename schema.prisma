@@ -42,6 +42,15 @@ model Channel {
   IsPrivate             Boolean ? @default(false)
   IsProtected           Boolean ? @default(false)
   password              String ?
+  mutedUsers            MutedUser[]
+}
+
+model MutedUser {
+  id        String    @id @default(uuid())
+  userId    String
+  channelId String
+  until     DateTime
+  Channel   Channel   @relation(fields: [channelId], references: [id])
 }
 
 model Friend {

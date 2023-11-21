@@ -16,6 +16,8 @@ import { ConversationDto } from "src/DTOs/conversation/conversation.dto";
 import { frontData } from "src/DTOs/chat/conversation.dto";
 import { messageRepository } from "src/modules/message/message.repository";
 
+
+
 @Controller('Chat')
 export class ChatController {
     constructor (private conversation: converationRepositroy
@@ -61,7 +63,6 @@ export class ChatController {
                         }
                     }
                 }
-                // console.log(data);
                 data.sort((a, b) => new Date(b.updatedAt).valueOf() - new Date(a.updatedAt).valueOf());
                 let index: number = 0
                 data.forEach((_data) => {
@@ -147,6 +148,42 @@ export class ChatController {
             return `user dosen't exist in database .`
     }
 
+    @Post('mute')
+    @UseGuards(JwtAuth)
+    async muteUser(@Req() req: Request & {user : UserDto}, @Body('channel') channel : string, @Body('toMute') toMute : string) : Promise<any> {
+        try {
+            let UsernameToMute : UserDto = await this.user.getUserByUsername(toMute);
+            let tmpChannel : channelDto = await this.channel.getChannelByName(channel)
+            if (!UsernameToMute || !tmpChannel)
+                throw ('no such user or channel .')
+            if (tmpChannel.owner != req.user.id)
+                throw ("not channel owner.")
+            if (!this.channel.isMuted(toMute, channel)) {
+                await this.channel.muteUser(toMute, channel);
+            }
+        } catch (error) {
+            console.log(error.message);
+        }
+    }
+
+    @Post('unMute')
+    @UseGuards(JwtAuth)
+    async unMuteUser(@Req() req: Request & {user : UserDto}, @Body('toMute') toMute : string, @Body('channel') channel: string) : Promise<any> {
+        try {
+            let checkUser : UserDto = await this.user.getUserByUsername(toMute)
+            let checkChannel : channelDto = await this.channel.getChannelByName(channel)
+            if (!checkUser || !checkChannel)
+             throw ("invalid User or Channel ...")
+            if (checkChannel.owner != req.user.id)
+            if (!checkChannel.users.includes(toMute))
+                throw ("User dosen't exist in channel ...")
+            if (!this.channel.isMuted(toMute, channel))
+                throw ("User isn't muted ...")
+            await this.channel.unMuteUser(toMute, channel);
+        } catch(error) {
+            console.log(error.message);
+        }
+    }
 
 
     @Post('ChannelAddUser')
