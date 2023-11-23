@@ -90,8 +90,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
               if (user) {
                 const _user = await this.user.getUserById(user.sub)
                 if (_user) {
-                  if (!_user.achievements.includes('send your first message'))
-                    this.user.updateAcheivement('send your first message', _user.id)
+                  if (!_user.achievements.includes('https://res.cloudinary.com/dvmxfvju3/image/upload/v1699322994/vp6r4ephqymsyrzxgd0h.png'))
+                    this.user.updateAcheivement('https://res.cloudinary.com/dvmxfvju3/image/upload/v1699322994/vp6r4ephqymsyrzxgd0h.png', _user.id)
                   let channel : channelDto = await this.channel.getChannelByName(message.channelName)
                   console.log(channel, _user);
                   if (_user && channel && channel.users.includes(_user.id))  {
@@ -146,8 +146,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect{
                   }
                   let achievementCheck : number = await this.conversation.numberOfConversations(sender.id)
                   if (achievementCheck > 0) {
-                    if (!sender.achievements.includes('send your first message')) {
-                      await this.user.updateAcheivement('send your first message', sender.id)
+                    if (!sender.achievements.includes('https://res.cloudinary.com/dvmxfvju3/image/upload/v1699322994/vp6r4ephqymsyrzxgd0h.png')) {
+                      await this.user.updateAcheivement('https://res.cloudinary.com/dvmxfvju3/image/upload/v1699322994/vp6r4ephqymsyrzxgd0h.png', sender.id)
                       console.log('added first message')
                   }
                 }

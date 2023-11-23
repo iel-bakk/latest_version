@@ -48,7 +48,7 @@ export class UsersRepository {
     }
 
     async updateAcheivement(_title : string, id : string) : Promise<UserDto> {
-        let userAchievements : string[] = await (await this.prisma.user.findUnique({where : {id}})).achievements
+        let userAchievements : string[] = (await this.prisma.user.findUnique({where : {id}})).achievements
         let found : boolean = false;
         userAchievements.forEach((achievement) => {
             if (achievement == title)

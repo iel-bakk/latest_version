@@ -42,7 +42,7 @@ export class ProfileController {
         }
         profileData.matches = [];
         profileData.achievements.forEach((_achievement) => {
-            if (profileData.userData.achievements.includes(_achievement.title)) {
+            if (profileData.userData.achievements.includes(_achievement.icon)) {
                 _achievement.unlocked = true;
             }
         })

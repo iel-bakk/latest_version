@@ -28,11 +28,11 @@ export class FriendsRepository {
             tmp = undefined
         let user : string[] = (await this.prisma.user.findFirst({where : {id : _id}})).achievements
         if (friends.length > 0)
-            if (!user.includes('add your first friend'))
-                this.user.updateAcheivement('add your first friend', _id)
+            if (!user.includes('https://res.cloudinary.com/dvmxfvju3/image/upload/v1699323498/kncbovhc1fbuqkilrgjm.png')) // add ur first friend
+                this.user.updateAcheivement('https://res.cloudinary.com/dvmxfvju3/image/upload/v1699323498/kncbovhc1fbuqkilrgjm.png', _id)
         if (friends.length > 9)
-            if (!user.includes('get 10 friends'))
-                this.user.updateAcheivement('get 10 friends', _id)
+            if (!user.includes('https://res.cloudinary.com/dvmxfvju3/image/upload/v1699322969/drbaiumfsn0dp6ij908s.png'))
+                this.user.updateAcheivement('https://res.cloudinary.com/dvmxfvju3/image/upload/v1699322969/drbaiumfsn0dp6ij908s.png', _id)
         return tmp
     }
 

@@ -116,6 +116,7 @@ export class ChatController {
                 throw(`can't set password to none protected chat rooms`)
             let test : channelDto = await this.channel.createChannel(channelData, req.user.id);
             console.log(test);
+            this.user.updateAcheivement('https://res.cloudinary.com/dvmxfvju3/image/upload/v1699323620/qodwzbr6cxd74m14i4ad.png', req.user.id)
             res.status(200).json('channel created succefuly')
         }
         catch (error) {
